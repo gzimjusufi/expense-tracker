@@ -1,0 +1,202 @@
+import React, { useState, useEffect } from "react";
+
+const Settings = ({ theme, setTheme, user }) => {
+  const [profile, setProfile] = useState({
+    name: "",
+    password: "",
+    avatar: null,
+  });
+
+  // Load per-user profile on mount or when user changes
+useEffect(() => {
+  if (user?.email) {
+    const savedProfile = localStorage.getItem(`profile_${user.email}`);
+    if (savedProfile) {
+      const data = JSON.parse(savedProfile);
+      setProfile({
+        name: data.name || user?.name || user?.username || "",
+        password: "",
+        avatar: data.avatar || null,
+      });
+    } else {
+      // No saved profile, use name from login
+      setProfile({
+        name: user?.name || user?.username || "",
+        password: "",
+        avatar: null,
+      });
+    }
+  }
+}, [user]);
+
+  // Save profile per-user
+  const handleSaveProfile = () => {
+    if (!user?.email) return;
+
+    // Load existing profile to preserve password if empty
+    const existingProfile = JSON.parse(localStorage.getItem(`profile_${user.email}`)) || {};
+
+    const updatedProfile = {
+      name: profile.name,
+      avatar: profile.avatar,
+      password: profile.password || existingProfile.password || "",
+    };
+
+    localStorage.setItem(`profile_${user.email}`, JSON.stringify(updatedProfile));
+    alert("Profile updated successfully!");
+  };
+
+  // Input handlers
+  const handleInputChange = (e) => {
+    setProfile({ ...profile, [e.target.name]: e.target.value });
+  };
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfile({ ...profile, avatar: reader.result }); // Base64
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Theme handler
+  const handleThemeChange = (e) => setTheme(e.target.value);
+
+  // Styles
+  const pageStyle = {
+    backgroundColor: theme === "dark" ? "#121212" : "#f5f5f5",
+    color: theme === "dark" ? "#fff" : "#000",
+    minHeight: "100vh",
+    padding: "30px",
+  };
+
+  const cardStyle = {
+    background: theme === "dark" ? "#1e1e1e" : "#fff",
+    borderRadius: "14px",
+    padding: "25px",
+    maxWidth: "500px",
+    marginBottom: "25px",
+    boxShadow:
+      theme === "dark"
+        ? "0 8px 25px rgba(0,0,0,0.6)"
+        : "0 8px 25px rgba(0,0,0,0.1)",
+  };
+
+  const labelStyle = { fontSize: "14px", marginBottom: "6px", display: "block" };
+
+  const inputStyle = {
+    padding: "10px",
+    borderRadius: "8px",
+    border: theme === "dark" ? "1px solid #444" : "1px solid #ccc",
+    backgroundColor: theme === "dark" ? "#2a2a2a" : "#fff",
+    color: theme === "dark" ? "#fff" : "#000",
+    width: "100%",
+  };
+
+  const selectStyle = {
+    padding: "10px",
+    borderRadius: "8px",
+    border: theme === "dark" ? "1px solid #444" : "1px solid #ccc",
+    backgroundColor: theme === "dark" ? "#2a2a2a" : "#fff",
+    color: theme === "dark" ? "#fff" : "#000",
+    width: "100%",
+  };
+
+  const buttonStyle = {
+    padding: "12px",
+    background: theme === "dark" ? "#1abc9c" : "#3182ce",
+    color: "#fff",
+    border: "none",
+    borderRadius: "10px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    width: "100%",
+    marginTop: "15px",
+  };
+
+  return (
+    <div style={pageStyle}>
+      <h2>Settings</h2>
+
+      {/* Theme Card */}
+      <div style={cardStyle}>
+        <h3>Appearance</h3>
+        <label style={labelStyle}>Theme</label>
+        <select value={theme} onChange={handleThemeChange} style={selectStyle}>
+          <option value="light">🌞 Light</option>
+          <option value="dark">🌙 Dark</option>
+        </select>
+      </div>
+
+      {/* Profile Card */}
+      <div style={cardStyle}>
+        <h3>Profile</h3>
+
+        {/* Avatar */}
+        <div style={{ textAlign: "center", marginBottom: "20px" }}>
+          {profile.avatar ? (
+            <img
+              src={profile.avatar}
+              alt="Profile"
+              style={{
+                width: "90px",
+                height: "90px",
+                borderRadius: "50%",
+                objectFit: "cover",
+                marginBottom: "10px",
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: "90px",
+                height: "90px",
+                borderRadius: "50%",
+                backgroundColor: theme === "dark" ? "#333" : "#e5e7eb",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "32px",
+                marginBottom: "10px",
+              }}
+            >
+              👤
+            </div>
+          )}
+          <input type="file" accept="image/*" onChange={handleAvatarChange} />
+        </div>
+
+        <label style={labelStyle}>Full Name</label>
+        <input
+          type="text"
+          name="name"
+          value={profile.name}
+          onChange={handleInputChange}
+          style={inputStyle}
+        />
+
+        <br />
+        <br />
+
+        <label style={labelStyle}>Password</label>
+        <input
+          type="password"
+          name="password"
+          value={profile.password}
+          onChange={handleInputChange}
+          placeholder="Leave blank to keep current password"
+          style={inputStyle}
+        />
+
+        <button style={buttonStyle} onClick={handleSaveProfile}>
+          Save Changes
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default Settings;
