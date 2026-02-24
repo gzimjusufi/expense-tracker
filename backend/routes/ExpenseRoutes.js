@@ -191,18 +191,29 @@ router.post("/import/csv", upload.single("file"), async (req, res) => {
 
     const importedExpenses = [];
     for (let i = 1; i < lines.length; i++) {
-      const row = lines[i].split(",");
+      const line = lines[i].replace(/\r/g, "").trim(); // fix Windows line endings
+        console.log(`Row ${i}:`, JSON.stringify(line)); // ADD THIS
+      if (!line) continue; // skip empty lines
+
+      const row = line.split(",").map(val => val.replace(/^"|"$/g, "").trim());
       if (row.length < 3) continue;
 
+      const date = new Date(row[2]);
+      if (isNaN(date.getTime())) continue; // skip invalid dates
+
+      const recurrence = row[5] ? row[5].trim() : null;
+      const validRecurrences = ["daily", "weekly", "monthly", null];
+      const safeRecurrence = validRecurrences.includes(recurrence) ? recurrence : null;
+
       importedExpenses.push({
-        category: row[0],
+        category: row[0].trim(),
         amount: parseFloat(row[1]),
-        date: new Date(row[2]),
-        description: row[3] || "",
-        recurring: row[4] === "true" || false,
-        recurrence: row[5] || null,
-        nextDueDate: row[4] === "true" && row[2] ? calculateNextDue(row[5], row[2]) : null,
-        user: req.user.id, // 🔹 USER SCOPED
+        date,
+        description: row[3] ? row[3].trim() : "",
+        recurring: row[4] === "true",
+        recurrence: safeRecurrence,
+        nextDueDate: row[4] === "true" && safeRecurrence ? calculateNextDue(safeRecurrence, row[2]) : null,
+        user: req.user.id,
       });
     }
 

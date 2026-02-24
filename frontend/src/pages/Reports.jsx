@@ -452,20 +452,25 @@ export default function Reports({ theme = "dark" }) {
   };
 
   const handleImport = async () => {
-    if (!file) return alert("Please select a CSV file first!");
-    const formData = new FormData();
-    formData.append("file", file);
-    try {
-      await axios.post("http://localhost:5000/api/expenses/import/csv", formData, authHeader(), {
-        headers: { "Content-Type": "multipart/form-data" }, 
-      });
-      alert("Expenses imported successfully!");
-      fetchExpenses();
-    } catch (err) {
-      console.error(err);
-      alert("Failed to import CSV");
-    }
-  };
+  if (!file) return alert("Please select a CSV file first!");
+  const formData = new FormData();
+  formData.append("file", file);
+  try {
+    await axios.post("http://localhost:5000/api/expenses/import/csv", formData, {
+      ...authHeader(),
+      headers: { 
+        ...authHeader().headers,
+        "Content-Type": "multipart/form-data" 
+      },
+    });
+    alert("Expenses imported successfully!");
+    fetchExpenses();
+  } catch (err) {
+    console.error(err);
+    alert("Failed to import CSV");
+  }
+};
+
 
   // -------------------------
   // Actions: filters
