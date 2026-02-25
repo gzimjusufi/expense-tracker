@@ -8,7 +8,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import session from "express-session";
 import passport from "passport";
-import { sendLoginNotification, sendExpenseReminder } from "./utils/mailer.js";
+import { sendLoginNotification, sendExpenseReminder, sendVerificationEmail } from "./utils/mailer.js";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 
 // Routes
@@ -126,52 +126,56 @@ const authMiddleware = (req, res, next) => {
 // =============================
 
 // Register
-// Register
+
+app.get("/api/auth/verify-email", async (req, res) => {
+  const { token } = req.query;
+  if (!token) return res.status(400).send("Missing token");
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    if (!user) return res.status(400).send("Invalid token");
+    if (user.isVerified) return res.send("Email already verified!");
+
+    user.isVerified = true;
+    await user.save();
+
+    res.send("Email verified successfully! You can now log in.");
+  } catch (err) {
+    res.status(400).send("Token expired or invalid");
+  }
+});
+
 app.post("/api/auth/register", async (req, res) => {
   const { name, email, password } = req.body;
 
   try {
-    // Check if a user with this email already exists
     let existing = await User.findOne({ email });
 
-    // If user exists with a Google account, prevent duplicate
     if (existing && existing.googleId) {
-      return res.status(400).json({
-        message: "Email already registered via Google. Please login with Google.",
-      });
+      return res.status(400).json({ message: "Email already registered via Google. Please login with Google." });
     }
 
-    // If user exists with password, block registration
     if (existing) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // Hash password if provided
     let hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
 
-    // Create user
     const user = new User({
       name,
       email,
       password: hashedPassword,
+      isVerified: false,
     });
 
     await user.save();
 
-    // Generate JWT token
-    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, {
-      expiresIn: "7d",
-    });
-
-        await sendExpenseReminder(
-      user.email,
-      "Welcome to Expense Tracker 🎉",
-      `Hello ${name},\n\nThank you for registering at Expense Tracker. Start tracking your expenses today!\n\n- The Expense Tracker Team`
-    );
+    const verificationToken = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "1d" });
+    await sendVerificationEmail(user.email, verificationToken);
 
     res.status(201).json({
-      token,
-      user: { id: user._id, name: user.name, email: user.email },
+      message: "Account created! Please check your email to verify your account.",
     });
   } catch (err) {
     console.error("🔥 Register error:", err);
@@ -185,6 +189,11 @@ app.post("/api/auth/login", async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
+
+    // ADD THIS CHECK:
+    if (!user.isVerified && !user.googleId) {
+      return res.status(403).json({ message: "Please verify your email before logging in" });
+    }
 
     const isMatch = user.password ? await bcrypt.compare(password, user.password) : false;
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });

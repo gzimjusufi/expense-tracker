@@ -245,16 +245,6 @@ export async function sendMonthlySummary(to, name, summaryData) {
 }
 
 export const sendVerificationEmail = async (email, token) => {
-  const nodemailer = require("nodemailer");
-
-  const transporter = nodemailer.createTransport({
-    service: "Gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-
   const url = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
 
   await transporter.sendMail({
@@ -271,4 +261,3 @@ export const sendVerificationEmail = async (email, token) => {
     `,
   });
 };
-
