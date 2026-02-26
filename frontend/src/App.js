@@ -13,6 +13,7 @@ import OAuthCallback from "./pages/OAuthCallback";
 import OAuthSuccess from "./pages/OAuthSuccess";
 import VerifyEmail from "./pages/VerifyEmail";
 import VerifyEmailRequest from "./pages/VerifyEmailRequest";
+import InstallButton from "./components/InstallButton";
 
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem("user_logged_in");
@@ -42,6 +43,7 @@ function App() {
 
   return (
     <Router>
+      <InstallButton />
       <Layout user={user} setUser={setUser} theme={theme} setTheme={setTheme}>
         <Routes>
           {/* Public Routes */}

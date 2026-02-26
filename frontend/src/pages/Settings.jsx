@@ -29,22 +29,45 @@ useEffect(() => {
   }
 }, [user]);
 
-  // Save profile per-user
-  const handleSaveProfile = () => {
-    if (!user?.email) return;
+const handleSaveProfile = async () => {
+  if (!user?.email) return;
 
-    // Load existing profile to preserve password if empty
-    const existingProfile = JSON.parse(localStorage.getItem(`profile_${user.email}`)) || {};
+  const existingProfile = JSON.parse(localStorage.getItem(`profile_${user.email}`)) || {};
 
-    const updatedProfile = {
-      name: profile.name,
-      avatar: profile.avatar,
-      password: profile.password || existingProfile.password || "",
-    };
-
-    localStorage.setItem(`profile_${user.email}`, JSON.stringify(updatedProfile));
-    alert("Profile updated successfully!");
+  const updatedProfile = {
+    name: profile.name,
+    avatar: profile.avatar,
+    password: profile.password || existingProfile.password || "",
   };
+
+  localStorage.setItem(`profile_${user.email}`, JSON.stringify(updatedProfile));
+
+  // Update in backend
+  try {
+    const token = localStorage.getItem("token");
+    const body = { name: profile.name };
+    if (profile.password) body.password = profile.password;
+
+    const res = await fetch("http://localhost:5000/api/auth/update-profile", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.message || "Failed to update profile.");
+      return;
+    }
+
+    alert("Profile updated successfully!");
+  } catch (err) {
+    alert("Server error. Could not update profile.");
+  }
+};
 
   // Input handlers
   const handleInputChange = (e) => {
