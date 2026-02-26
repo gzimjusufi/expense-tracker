@@ -2,6 +2,8 @@ import express from "express";
 import Expense from "../models/Expense.js";
 import { Parser } from "json2csv";
 import multer from "multer";
+import User from "../models/user.js";
+import { sendBudgetWarning, sendBudgetExceeded } from "../utils/mailer.js";
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -35,6 +37,31 @@ router.post("/", async (req, res) => {
     });
 
     await expense.save();
+
+    // Check budget after saving expense
+const user = await User.findById(req.user.id);
+if (user && user.monthlyBudget) {
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+
+  const expenses = await Expense.find({
+    user: req.user.id,
+    date: { $gte: startOfMonth }
+  });
+
+  const spent = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const budget = user.monthlyBudget;
+  const percentage = (spent / budget) * 100;
+
+  console.log(`💰 Budget check: spent=${spent}, budget=${budget}, percentage=${percentage}%`);
+
+  if (percentage >= 100) {
+    await sendBudgetExceeded(user.email, user.name, spent, budget);
+  } else if (percentage >= 80) {
+    await sendBudgetWarning(user.email, user.name, spent, budget);
+  }
+}
 
     // ✅ Immediately create today's instance if recurring
     if (recurring) {

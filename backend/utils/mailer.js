@@ -244,6 +244,58 @@ export async function sendMonthlySummary(to, name, summaryData) {
   }
 }
 
+export async function sendBudgetWarning(to, name, spent, budget) {
+  try {
+    const percentage = Math.round((spent / budget) * 100);
+    const content = `
+      <p style="font-size:15px;">Hi ${cleanText(name)},</p>
+      <p style="font-size:15px;">⚠️ You've used <strong>${percentage}%</strong> of your monthly budget.</p>
+      <p style="font-size:15px;">
+        <strong>Spent:</strong> $${spent.toFixed(2)}<br/>
+        <strong>Budget:</strong> $${budget.toFixed(2)}<br/>
+        <strong>Remaining:</strong> $${(budget - spent).toFixed(2)}
+      </p>
+      <p style="font-size:15px;">Consider slowing down your spending for the rest of the month!</p>
+    `;
+    const html = baseTemplate("⚠️ Budget Warning", content);
+    await transporter.sendMail({
+      from: `"Expense Tracker" <${process.env.EMAIL_USER}>`,
+      to,
+      subject: "⚠️ You've used 80% of your monthly budget",
+      html,
+    });
+    console.log(`✅ Budget warning sent to ${to}`);
+  } catch (err) {
+    console.error("❌ Error sending budget warning:", err);
+  }
+}
+
+export async function sendBudgetExceeded(to, name, spent, budget) {
+  try {
+    const overage = spent - budget;
+    const content = `
+      <p style="font-size:15px;">Hi ${cleanText(name)},</p>
+      <p style="font-size:15px;">🚨 You've <strong>exceeded</strong> your monthly budget!</p>
+      <p style="font-size:15px;">
+        <strong>Spent:</strong> $${spent.toFixed(2)}<br/>
+        <strong>Budget:</strong> $${budget.toFixed(2)}<br/>
+        <strong>Over by:</strong> $${overage.toFixed(2)}
+      </p>
+      <p style="font-size:15px;">Please review your expenses and adjust your spending.</p>
+    `;
+    const html = baseTemplate("🚨 Budget Exceeded", content);
+    await transporter.sendMail({
+      from: `"Expense Tracker" <${process.env.EMAIL_USER}>`,
+      to,
+      subject: "🚨 You've exceeded your monthly budget!",
+      html,
+    });
+    console.log(`✅ Budget exceeded email sent to ${to}`);
+  } catch (err) {
+    console.error("❌ Error sending budget exceeded email:", err);
+  }
+}
+
 export const sendVerificationEmail = async (email, token) => {
   const url = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
 
