@@ -40,6 +40,11 @@ function App() {
     return stored ? JSON.parse(stored) : null;
   });
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+  const [currency, setCurrency] = useState(() => {
+    const stored = localStorage.getItem("user_logged_in");
+    return stored ? JSON.parse(stored)?.currency || "USD" : "USD";
+  });
+
 
   return (
     <Router>
@@ -56,10 +61,10 @@ function App() {
           <Route path="/verify-email-request" element={<VerifyEmailRequest />} />
 
           {/* Protected Routes */}
-          <Route path="/dashboard" element={<PrivateRoute><Dashboard user={user} theme={theme} setTheme={setTheme} /></PrivateRoute>} />
-          <Route path="/expenses" element={<PrivateRoute><Expenses user={user} theme={theme} /></PrivateRoute>} />
-          <Route path="/reports" element={<PrivateRoute><Reports user={user} theme={theme} /></PrivateRoute>} />
-          <Route path="/settings" element={<PrivateRoute><Settings user={user} setUser={setUser} theme={theme} setTheme={setTheme} /></PrivateRoute>} />
+          <Route path="/dashboard" element={<PrivateRoute><Dashboard user={user} theme={theme} setTheme={setTheme} currency={currency} /></PrivateRoute>} />
+          <Route path="/expenses" element={<PrivateRoute><Expenses user={user} theme={theme} currency={currency} /></PrivateRoute>} />
+          <Route path="/reports" element={<PrivateRoute><Reports user={user} theme={theme} currency={currency} /></PrivateRoute>} />
+          <Route path="/settings" element={<PrivateRoute><Settings user={user} setUser={setUser} theme={theme} setTheme={setTheme} setCurrency={setCurrency} /></PrivateRoute>} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" />} />

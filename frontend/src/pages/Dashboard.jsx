@@ -12,6 +12,7 @@ import {
 import Header from "../components/Header";
 import ExpenseList from "../components/ExpenseList";
 import Insights from "../components/Insight";
+import { formatCurrency } from "../services/currency";
 
 const categoryColors = {
   Food: "#2ecc71",
@@ -23,7 +24,7 @@ const categoryColors = {
   Other: "#95a5a6",
 };
 
-export default function Dashboard({ theme, user }) {
+export default function Dashboard({ theme, user, currency }) {
   const [expenses, setExpenses] = useState([]);
   const [filteredExpenses, setFilteredExpenses] = useState([]);
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -178,21 +179,21 @@ export default function Dashboard({ theme, user }) {
   return (
     <div style={pageStyle}>
       <Header theme={theme} />
-      <Insights expenses={filteredExpenses} budget={budget} theme={theme} />
+      <Insights expenses={filteredExpenses} budget={budget} theme={theme} currency={currency} />
 
       {/* Summary Cards */}
       <div style={{ display: "flex", gap: "20px", marginBottom: "20px", flexWrap: "wrap" }}>
         <div style={cardStyle}>
           <h4>Total Expenses</h4>
-          <p>${totalExpenses.toFixed(2)}</p>
+          <p>{formatCurrency(totalExpenses, currency)}</p>
         </div>
         <div style={cardStyle}>
           <h4>Monthly Expenses</h4>
-          <p>${monthlyExpenses.toFixed(2)}</p>
+          <p>{formatCurrency(monthlyExpenses, currency)}</p>
         </div>
         <div style={cardStyle}>
           <h4>Highest Expense</h4>
-          <p>${highestExpense.toFixed(2)}</p>
+          <p>{formatCurrency(highestExpense, currency)}</p>
         </div>
       </div>
 
@@ -303,7 +304,7 @@ export default function Dashboard({ theme, user }) {
       </div>
 
       {/* Expense List */}
-      <ExpenseList expenses={filteredExpenses} theme={theme} readOnly={true} />
+      <ExpenseList expenses={filteredExpenses} theme={theme} readOnly={true} currency={currency} />
 
       {/* Chart */}
       {chartData.length > 0 ? (

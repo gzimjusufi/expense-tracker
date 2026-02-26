@@ -1,5 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { formatCurrency } from "../services/currency";
 
 // Colors for categories
 const categoryColors = {
@@ -12,7 +13,7 @@ const categoryColors = {
   Other: "#95a5a6",
 };
 
-export default function ExpenseList({ expenses, onDelete, theme, readOnly = false }) {
+export default function ExpenseList({ expenses, onDelete, theme, readOnly = false, currency = "USD" }) {
   const tableStyle = {
     width: "100%",
     borderCollapse: "collapse",
@@ -102,7 +103,7 @@ export default function ExpenseList({ expenses, onDelete, theme, readOnly = fals
                   </span>
                 </td>
                 <td style={tdStyle}>{expense.description || "-"}</td>
-                <td style={tdStyle}>${expense.amount.toFixed(2)}</td>
+                <td style={tdStyle}>{formatCurrency(expense.amount, currency)}</td>
                 <td style={tdStyle}>
                   {expense.recurring ? (
                     <span

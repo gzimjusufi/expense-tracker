@@ -1,14 +1,9 @@
 import React, { useMemo } from "react";
+import { formatCurrency } from "../services/currency";
 
 // -------------------------
 // Helpers
 // -------------------------
-const currency = (n) =>
-  new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 2,
-  }).format(Number(n || 0));
 
 const monthKey = (dateStr) => {
   const d = new Date(dateStr);
@@ -27,7 +22,7 @@ const monthLabel = (key) => {
 // -------------------------
 // Insight Component
 // -------------------------
-export default function Insight({ expenses, theme = "dark", monthlyBudget }) {
+export default function Insight({ expenses, theme = "dark", monthlyBudget, currency = "USD" }) {
   // Compute monthly totals
   const monthlyTotals = useMemo(() => {
     const totals = {};
@@ -113,7 +108,7 @@ export default function Insight({ expenses, theme = "dark", monthlyBudget }) {
         }}
       >
         <h4>Next Month Prediction</h4>
-        <p>Predicted Expenses: {currency(nextMonthPrediction)}</p>
+        <p>Predicted Expenses: {formatCurrency(nextMonthPrediction, currency)}</p>
         <p style={{ color: progressColor }}>{budgetStatus}</p>
       </div>
     )}
@@ -131,7 +126,7 @@ export default function Insight({ expenses, theme = "dark", monthlyBudget }) {
         <ul>
           {spikes.map((s, idx) => (
             <li key={idx}>
-              {s.month}: Spent {currency(s.increase)} more than previous month (
+              {s.month}: Spent {formatCurrency(s.increase, currency)} more than previous month (
               {s.percent.toFixed(0)}%)
             </li>
           ))}

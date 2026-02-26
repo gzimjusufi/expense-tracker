@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema({
   googleId: { type: String, unique: true, sparse: true },
   isVerified: { type: Boolean, default: false },
   monthlyBudget: { type: Number, default: 1000 },
+  currency: { type: String, default: "USD" },
 });
 
 const User = mongoose.model("User", userSchema);

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 
-const Settings = ({ theme, setTheme, user }) => {
+const Settings = ({ theme, setTheme, user, setCurrency }) => {
   const [profile, setProfile] = useState({
     name: "",
     password: "",
     avatar: null,
+    currency: "USD",
   });
 
   // Load per-user profile on mount or when user changes
@@ -17,6 +18,7 @@ useEffect(() => {
         name: data.name || user?.name || user?.username || "",
         password: "",
         avatar: data.avatar || null,
+        currency: data.currency || savedProfile?.currency || "USD",
       });
     } else {
       // No saved profile, use name from login
@@ -38,15 +40,16 @@ const handleSaveProfile = async () => {
     name: profile.name,
     avatar: profile.avatar,
     password: profile.password || existingProfile.password || "",
+    currency: profile.currency || "USD",
   };
 
   localStorage.setItem(`profile_${user.email}`, JSON.stringify(updatedProfile));
 
-  // Update in backend
   try {
     const token = localStorage.getItem("token");
     const body = { name: profile.name };
     if (profile.password) body.password = profile.password;
+    if (profile.currency) body.currency = profile.currency;
 
     const res = await fetch("http://localhost:5000/api/auth/update-profile", {
       method: "PUT",
@@ -63,12 +66,17 @@ const handleSaveProfile = async () => {
       return;
     }
 
+    if (profile.currency) {
+      setCurrency(profile.currency);
+      const stored = JSON.parse(localStorage.getItem("user_logged_in")) || {};
+      localStorage.setItem("user_logged_in", JSON.stringify({ ...stored, currency: profile.currency }));
+    }
+
     alert("Profile updated successfully!");
   } catch (err) {
     alert("Server error. Could not update profile.");
   }
 };
-
   // Input handlers
   const handleInputChange = (e) => {
     setProfile({ ...profile, [e.target.name]: e.target.value });
@@ -191,6 +199,24 @@ const handleSaveProfile = async () => {
           )}
           <input type="file" accept="image/*" onChange={handleAvatarChange} />
         </div>
+
+        <label style={labelStyle}>Preferred Currency</label>
+<select
+  name="currency"
+  value={profile.currency || "USD"}
+  onChange={(e) => setProfile({ ...profile, currency: e.target.value })}
+  style={inputStyle}
+>
+  <option value="USD">🇺🇸 USD - US Dollar</option>
+  <option value="EUR">🇪🇺 EUR - Euro</option>
+  <option value="GBP">🇬🇧 GBP - British Pound</option>
+  <option value="MKD">🇲🇰 MKD - Macedonian Denar</option>
+  <option value="CHF">🇨🇭 CHF - Swiss Franc</option>
+  <option value="JPY">🇯🇵 JPY - Japanese Yen</option>
+  <option value="CAD">🇨🇦 CAD - Canadian Dollar</option>
+  <option value="AUD">🇦🇺 AUD - Australian Dollar</option>
+</select>
+<br /><br />
 
         <label style={labelStyle}>Full Name</label>
         <input

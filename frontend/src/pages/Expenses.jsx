@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { formatCurrency } from "../services/currency";
 
-const Expenses = ({ theme }) => {
+const Expenses = ({ theme, currency }) => {
   const [category, setCategory] = useState("Food");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState("");
@@ -228,7 +229,7 @@ setRecurrence("");
               value={budgetInput}
               onChange={(e) => setBudgetInput(Number(e.target.value))}
             />
-            <span className="fw-bold">USD</span>
+            <span className="fw-bold">{currency || "USD"}</span>
             <button className="btn btn-primary btn-sm" onClick={saveBudget}>
               Update
             </button>
@@ -244,8 +245,8 @@ setRecurrence("");
           </div>
         </div>
         <p className="mt-2 mb-0">
-          Spent: <strong>${totalSpent}</strong> /{" "}
-          <strong>${monthlyBudget}</strong>
+          Spent: <strong>{formatCurrency(totalSpent, currency)}</strong> /{" "}
+          <strong>{formatCurrency(monthlyBudget, currency)}</strong>
         </p>
         {budgetUsedPercentage >= 90 && (
           <p className="text-danger fw-bold mt-2">
@@ -350,7 +351,7 @@ setRecurrence("");
           <thead className={theme === "dark" ? "table-secondary" : "table-dark"}>
             <tr>
               <th>Category</th>
-              <th>Amount ($)</th>
+              <th>Amount</th>
               <th>Date</th>
               <th>Description</th>
               <th>Recurring</th>
@@ -372,7 +373,7 @@ setRecurrence("");
                       {expense.category}
                     </span>
                   </td>
-                  <td>${expense.amount}</td>
+                  <td>{formatCurrency(expense.amount, currency)}</td>
                   <td>{new Date(expense.date).toLocaleDateString()}</td>
                   <td>{expense.description}</td>
                   <td>

@@ -15,6 +15,7 @@ import {
   Line,
 } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
+import { formatCurrency } from "../services/currency";
 
 // Attach token to requests
 const authHeader = () => {
@@ -24,12 +25,6 @@ const authHeader = () => {
 // -------------------------
 // Utility helpers
 // -------------------------
-const currency = (n) =>
-  new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 2,
-  }).format(Number(n || 0));
 
 const monthKey = (dateStr) => {
   const d = new Date(dateStr);
@@ -261,7 +256,7 @@ function FilterDrawer({
 // -------------------------
 // Main Reports Component
 // -------------------------
-export default function Reports({ theme = "dark" }) {
+export default function Reports({ theme = "dark", currency: userCurrency = "USD" }) {
   // Data
   const [expenses, setExpenses] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -431,7 +426,7 @@ export default function Reports({ theme = "dark" }) {
           exp.date ? new Date(exp.date).toLocaleDateString() : "N/A",
           exp.category || "N/A",
           exp.description || "-",
-          currency(exp.amount),
+          formatCurrency(exp.amount, userCurrency),
         ]);
       });
 
@@ -604,7 +599,7 @@ export default function Reports({ theme = "dark" }) {
           }`}
         >
           <div className="text-sm opacity-70">Total Spent (current filters)</div>
-          <div className="text-2xl font-bold">{currency(totalSpent)}</div>
+          <div className="text-2xl font-bold">{formatCurrency(totalSpent, userCurrency)}</div>
         </motion.div>
 
         <motion.div
@@ -614,7 +609,7 @@ export default function Reports({ theme = "dark" }) {
           }`}
         >
           <div className="text-sm opacity-70">Average per Month</div>
-          <div className="text-2xl font-bold">{currency(avgPerMonth)}</div>
+          <div className="text-2xl font-bold">{formatCurrency(avgPerMonth, userCurrency)}</div>
         </motion.div>
 
         <motion.div
@@ -627,7 +622,7 @@ export default function Reports({ theme = "dark" }) {
           <div className="text-lg font-semibold">
             {topCat ? (
               <>
-                {topCat.name} <span className="opacity-70">({currency(topCat.amount)})</span>
+                {topCat.name} <span className="opacity-70">({formatCurrency(topCat.amount, userCurrency)})</span>
               </>
             ) : (
               <span className="opacity-60">—</span>
