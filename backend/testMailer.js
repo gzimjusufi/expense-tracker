@@ -1,23 +1,32 @@
-import dotenv from "dotenv";
-import { sendExpenseReminder } from "./utils/mailer.js";
+import { sendVerificationEmail, sendWelcomeEmail, sendLoginNotification, sendExpenseReminder, sendMonthlySummary } from "./utils/mailer.js";
 
-dotenv.config();
+const TEST_EMAIL = "jusufigzim2@gmail.com"; // change this
 
-const user = {
-  email: process.env.TEST_EMAIL || "youremail@example.com",
-  username: "Gzim",
-};
+console.log("Testing all email functions...");
 
-(async () => {
-  console.log("🚀 Testing email send...");
-  await sendExpenseReminder(
-    user.email,
-    "Login Notification",
-    {
-      category: "Login Notification",
-      description: "You successfully logged into Expense Tracker via Google!",
-      amount: 0,
-      nextDueDate: new Date().toISOString(),
-    }
-  );
-})();
+await sendVerificationEmail(TEST_EMAIL, "test-token-123");
+console.log("✅ Verification email sent");
+
+await sendWelcomeEmail(TEST_EMAIL, "Test User");
+console.log("✅ Welcome email sent");
+
+await sendLoginNotification(TEST_EMAIL, "Test User");
+console.log("✅ Login notification sent");
+
+await sendExpenseReminder(TEST_EMAIL, "Login Notification", {
+  category: "Food",
+  description: "Test expense",
+  amount: 50,
+  nextDueDate: new Date().toISOString(),
+});
+console.log("✅ Expense reminder sent");
+
+await sendMonthlySummary(TEST_EMAIL, "Test User", {
+  total: 500,
+  month: "February 2026",
+  categories: [
+    { name: "Food", amount: 200 },
+    { name: "Transport", amount: 300 },
+  ],
+});
+console.log("✅ Monthly summary sent");

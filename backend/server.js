@@ -10,6 +10,7 @@ import session from "express-session";
 import passport from "passport";
 import { sendLoginNotification, sendExpenseReminder, sendVerificationEmail } from "./utils/mailer.js";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import "./cronJobs/recurringExpenses.js";
 
 // Routes
 import expenseRoutes from "./routes/ExpenseRoutes.js";
