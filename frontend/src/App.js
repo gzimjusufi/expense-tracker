@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
@@ -45,6 +45,27 @@ function App() {
     return stored ? JSON.parse(stored)?.currency || "USD" : "USD";
   });
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    fetch("http://localhost:5000/api/auth/verify", {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.user?.currency) {
+          setCurrency(data.user.currency);
+          const stored = JSON.parse(localStorage.getItem("user_logged_in")) || {};
+          localStorage.setItem("user_logged_in", JSON.stringify({ ...stored, currency: data.user.currency }));
+        }
+      })
+      .catch(() => {});
+  }, []);
+  useEffect(() => {
+  localStorage.setItem("theme", theme);
+}, [theme]);
+
 
   return (
     <Router>
@@ -53,8 +74,8 @@ function App() {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login setUser={setUser} setTheme={setTheme} />} />
-          <Route path="/register" element={<Register setUser={setUser} setTheme={setTheme} />} />
+          <Route path="/login" element={<Login setUser={setUser} setTheme={setTheme} setCurrency={setCurrency} />} />
+          <Route path="/register" element={<Register setUser={setUser} setTheme={setTheme} setCurrency={setCurrency} />} />
           <Route path="/oauth-callback" element={<OAuthCallback setUser={setUser} />} />
           <Route path="/oauth-success" element={<OAuthSuccess setUser={setUser} />} />
           <Route path="/verify-email" element={<VerifyEmail />} />

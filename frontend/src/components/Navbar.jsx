@@ -28,12 +28,14 @@ const Navbar = ({ theme, user, setUser }) => {
     }
   }, [user]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("user_logged_in");
-    localStorage.removeItem("token");
-    setUser(null);
-    navigate("/login");
-  };
+const handleLogout = () => {
+  const currentTheme = localStorage.getItem("theme"); // preserve theme
+  localStorage.removeItem("user_logged_in");
+  localStorage.removeItem("token");
+  if (currentTheme) localStorage.setItem("theme", currentTheme); // restore it
+  setUser(null);
+  navigate("/login");
+};
 
   const links = [
     { name: "Dashboard", path: "/dashboard" },

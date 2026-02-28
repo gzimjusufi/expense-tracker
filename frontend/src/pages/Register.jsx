@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import {inputStyle} from "./login";
 
 function Register() {
   const [name, setName] = useState("");
@@ -79,7 +80,7 @@ useEffect(() => {
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
-          style={{ width: "100%", margin: "10px 0", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
+          style={inputStyle}
         />
         <input
           type="email"
@@ -87,7 +88,7 @@ useEffect(() => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          style={{ width: "100%", margin: "10px 0", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
+          style={inputStyle}
         />
         <input
           type="password"
@@ -95,7 +96,7 @@ useEffect(() => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          style={{ width: "100%", margin: "10px 0", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
+          style={inputStyle}
         />
         <button
           type="submit"

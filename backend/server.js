@@ -210,8 +210,7 @@ await sendExpenseReminder(user.email, "Login Notification", {
   description: "You successfully logged into Expense Tracker!",
 });
 
-
-    res.json({ token, user: { id: user._id, name: user.name, email } });
+    res.json({ token, user: { id: user._id, name: user.name, email: user.email, currency: user.currency || "USD" } });
   } catch (err) {
     console.error("❌ Login error:", err);
     res.status(500).json({ message: "Server error" });
@@ -221,16 +220,16 @@ await sendExpenseReminder(user.email, "Login Notification", {
 
 
 // Verify & get current user
-app.get("/api/auth/verify", authMiddleware, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id).select("-password");
-    if (!user) return res.status(404).json({ message: "User not found" });
-    res.json({ user });
-  } catch (err) {
-    console.error("❌ Verify error:", err.message);
-    res.status(500).json({ message: "Server error" });
-  }
-});
+// app.get("/api/auth/verify", authMiddleware, async (req, res) => {
+//   try {
+//     const user = await User.findById(req.user.id).select("-password");
+//     if (!user) return res.status(404).json({ message: "User not found" });
+//     res.json({ user });
+//   } catch (err) {
+//     console.error("❌ Verify error:", err.message);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// });
 
 // =============================
 // 🔹 GOOGLE OAUTH ROUTES
@@ -244,7 +243,7 @@ app.get(
     try {
       // Create JWT
       const token = jwt.sign(
-        { id: req.user._id, email: req.user.email },
+        { id: req.user._id, email: req.user.email, currency: req.user.currency || "USD" },
         JWT_SECRET,
         { expiresIn: "7d" }
       );
@@ -262,13 +261,23 @@ await sendExpenseReminder(
 );
 
       // Redirect to frontend with token
-      res.redirect(`http://localhost:3000/oauth-success?token=${token}`);
+      res.redirect(`http://localhost:3000/oauth-success?token=${token}&currency=${req.user.currency || "USD"}`);
     } catch (err) {
       console.error("❌ Google login email error:", err);
       res.redirect("/login");
     }
   }
 );
+
+app.get("/api/auth/verify", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json({ user: { id: user._id, name: user.name, email: user.email, currency: user.currency || "USD" } });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 app.put("/api/auth/update-profile", authMiddleware, async (req, res) => {
   try {

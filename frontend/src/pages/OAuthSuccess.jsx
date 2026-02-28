@@ -7,26 +7,26 @@ function OAuthSuccess({ setUser }) {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
+    const currency = params.get("currency") || "USD";
 
     if (token) {
-      // Save token in localStorage
       localStorage.setItem("token", token);
 
-      // Verify token & get user
       fetch("http://localhost:5000/api/auth/verify", {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then(res => res.json())
         .then(data => {
-          setUser(data.user);
-          localStorage.setItem("user_logged_in", JSON.stringify(data.user));
-          navigate("/dashboard"); // redirect to dashboard
+          const userWithCurrency = { ...data.user, currency };
+          setUser(userWithCurrency);
+          localStorage.setItem("user_logged_in", JSON.stringify(userWithCurrency));
+          navigate("/dashboard");
         })
         .catch(() => {
-          navigate("/login"); // fallback if verify fails
+          navigate("/login");
         });
     } else {
-      navigate("/login"); // fallback if no token
+      navigate("/login");
     }
   }, [navigate, setUser]);
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
-function Login({ setUser, setTheme }) {
+function Login({ setUser, setTheme, setCurrency }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -47,6 +47,7 @@ function Login({ setUser, setTheme }) {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user_logged_in", JSON.stringify(data.user));
       setUser(data.user);
+      setCurrency(data.user.currency || "USD");
 
       const storedTheme = localStorage.getItem("theme") || "light";
       setTheme(storedTheme);
@@ -95,13 +96,7 @@ function Login({ setUser, setTheme }) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          style={{
-            width: "100%",
-            margin: "10px 0",
-            padding: "10px",
-            borderRadius: "6px",
-            border: "1px solid #ccc",
-          }}
+          style={inputStyle}
         />
         <input
           type="password"
@@ -109,13 +104,7 @@ function Login({ setUser, setTheme }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          style={{
-            width: "100%",
-            margin: "10px 0",
-            padding: "10px",
-            borderRadius: "6px",
-            border: "1px solid #ccc",
-          }}
+          style={inputStyle}
         />
         
         <button
