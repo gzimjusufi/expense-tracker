@@ -13,6 +13,9 @@ import {
   Legend,
   LineChart,
   Line,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatCurrency } from "../services/currency";
@@ -637,6 +640,7 @@ export default function Reports({ theme = "dark", currency: userCurrency = "USD"
           { key: "summary", label: "Summary" },
           { key: "trends", label: "Trends" },
           { key: "comparison", label: "Comparison" },
+          { key: "pie", label: "By Category" },
         ].map((t) => (
           <button
             key={t.key}
@@ -732,6 +736,35 @@ export default function Reports({ theme = "dark", currency: userCurrency = "USD"
             <p className="opacity-70 text-center">Enable Compare in Filters to view side-by-side periods.</p>
           )
         )}
+        {activeTab === "pie" && (
+  filtered.length > 0 ? (
+    <ResponsiveContainer width="100%" height={420}>
+      <PieChart>
+        <Pie
+          data={Object.entries(
+            filtered.reduce((acc, e) => {
+              acc[e.category] = (acc[e.category] || 0) + Number(e.amount);
+              return acc;
+            }, {})
+          ).map(([name, value]) => ({ name, value }))}
+          cx="50%"
+          cy="50%"
+          outerRadius={150}
+          dataKey="value"
+          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+        >
+          {["#6366f1","#34d399","#f87171","#f59e0b","#60a5fa","#a78bfa","#10b981"].map((color, index) => (
+            <Cell key={index} fill={color} />
+          ))}
+        </Pie>
+        <Tooltip formatter={(value) => formatCurrency(value, userCurrency)} />
+        <Legend />
+      </PieChart>
+    </ResponsiveContainer>
+  ) : (
+    <p className="opacity-70 text-center">No expense data to display.</p>
+  )
+)}
       </div>
       
       {/* Drawer */}
