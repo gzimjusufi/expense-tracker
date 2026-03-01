@@ -10,7 +10,7 @@ const Expenses = ({ theme, currency }) => {
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
   const [expenses, setExpenses] = useState([]);
-  
+  const [search, setSearch] = useState("");
 // Attach token to requests
 const authHeader = () => {
   const token = localStorage.getItem("token"); // or sessionStorage if you stored it there
@@ -341,6 +341,16 @@ setRecurrence("");
         </div>
       </form>
 
+      <div className="mb-3">
+  <input
+    type="text"
+    className={`form-control ${theme === "dark" ? "bg-secondary text-light border-0" : ""}`}
+    placeholder="🔍 Search by description or category..."
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+  />
+</div>
+
       {/* Expense Table */}
       <div className="table-responsive">
         <table
@@ -360,7 +370,13 @@ setRecurrence("");
           </thead>
           <tbody>
             <AnimatePresence>
-              {expenses.map((expense) => (
+              {expenses.filter((expense) => {
+  const q = search.toLowerCase();
+  return (
+    expense.description?.toLowerCase().includes(q) ||
+    expense.category?.toLowerCase().includes(q)
+  );
+}).map((expense) => (
                 <motion.tr
                   key={expense._id}
                   initial={{ opacity: 0, y: 5 }}
