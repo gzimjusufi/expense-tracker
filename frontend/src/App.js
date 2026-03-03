@@ -14,6 +14,7 @@ import OAuthSuccess from "./pages/OAuthSuccess";
 import VerifyEmail from "./pages/VerifyEmail";
 import VerifyEmailRequest from "./pages/VerifyEmailRequest";
 import InstallButton from "./components/InstallButton";
+import CalendarPage from "./pages/Calendar";
 
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem("user_logged_in");
@@ -86,7 +87,7 @@ function App() {
           <Route path="/expenses" element={<PrivateRoute><Expenses user={user} theme={theme} currency={currency} /></PrivateRoute>} />
           <Route path="/reports" element={<PrivateRoute><Reports user={user} theme={theme} currency={currency} /></PrivateRoute>} />
           <Route path="/settings" element={<PrivateRoute><Settings user={user} setUser={setUser} theme={theme} setTheme={setTheme} setCurrency={setCurrency} /></PrivateRoute>} />
-
+          <Route path="/calendar" element={<PrivateRoute><CalendarPage theme={theme} currency={currency} /></PrivateRoute>} />
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

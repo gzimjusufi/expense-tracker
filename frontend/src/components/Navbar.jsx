@@ -41,6 +41,7 @@ const handleLogout = () => {
     { name: "Dashboard", path: "/dashboard" },
     { name: "Expenses", path: "/expenses" },
     { name: "Reports", path: "/reports" },
+    { name: "Calendar", path: "/calendar" },
     { name: "Settings", path: "/settings" },
   ];
 
