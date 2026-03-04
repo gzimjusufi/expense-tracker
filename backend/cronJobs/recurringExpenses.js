@@ -52,9 +52,10 @@ cron.schedule("0 0 * * *", async () => {
         amount: expense.amount,
         date: expense.nextDueDate,
         description: expense.description,
-        recurring: expense.recurring,
-        recurrence: expense.recurrence,
-        nextDueDate: calculateNextDue(expense.recurrence, expense.nextDueDate),
+        recurring: false,
+        recurrence: null,
+        nextDueDate: null,
+        tags: expense.tags || [],
       });
       await newExpense.save();
 

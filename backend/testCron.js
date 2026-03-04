@@ -1,6 +1,5 @@
 import Expense from "./models/Expense.js";
 import User from "./models/user.js";
-import { sendExpenseReminder } from "./utils/mailer.js";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 
@@ -21,30 +20,30 @@ function calculateNextDue(recurrence, fromDate) {
 }
 
 const today = new Date();
-const dueExpenses = await Expense.find({
-  recurring: true,
-  nextDueDate: { $lte: today },
-});
-
+const dueExpenses = await Expense.find({ recurring: true, nextDueDate: { $lte: today } });
 console.log(`Found ${dueExpenses.length} due recurring expenses`);
 
 for (let expense of dueExpenses) {
   const user = await User.findById(expense.user);
   if (!user) continue;
 
-  console.log(`Processing: ${expense.category} for ${user.email}`);
-
-  await sendExpenseReminder(user.email, "💡 Expense Reminder", {
+  const newExpense = new Expense({
+    user: expense.user,
     category: expense.category,
-    description: expense.description,
     amount: expense.amount,
-    nextDueDate: expense.nextDueDate,
+    date: expense.nextDueDate,
+    description: expense.description,
+    recurring: false,
+    recurrence: null,
+    nextDueDate: null,
+    tags: expense.tags || [],
   });
+  await newExpense.save();
 
   expense.nextDueDate = calculateNextDue(expense.recurrence, expense.nextDueDate);
   await expense.save();
 
-  console.log(`✅ Done - next due: ${expense.nextDueDate}`);
+  console.log(`✅ Added: ${expense.category} | tags: ${newExpense.tags}`);
 }
 
 await mongoose.disconnect();
