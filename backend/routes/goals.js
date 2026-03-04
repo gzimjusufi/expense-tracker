@@ -84,4 +84,21 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+// Remove money from goal
+router.put("/:id/remove", async (req, res) => {
+  try {
+    const { amount } = req.body;
+    const goal = await Goal.findOne({ _id: req.params.id, user: req.user.id });
+    if (!goal) return res.status(404).json({ message: "Goal not found" });
+
+    const newAmount = Math.max(0, goal.savedAmount - Number(amount));
+    goal.savedAmount = newAmount;
+    await goal.save();
+
+    res.json(goal);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 export default router;

@@ -61,6 +61,16 @@ export default function Goals({ theme, currency = "USD" }) {
     } catch (err) { console.error(err); }
   };
 
+  const removeMoney = async (id) => {
+  const amount = addAmounts[id];
+  if (!amount || amount <= 0) return alert("Enter a valid amount!");
+  try {
+    const res = await axios.put(`http://localhost:5000/api/goals/${id}/remove`, { amount }, authHeader());
+    setGoals(goals.map(g => g._id === id ? res.data : g));
+    setAddAmounts({ ...addAmounts, [id]: "" });
+  } catch (err) { console.error(err); }
+};
+
   const pageStyle = {
     backgroundColor: theme === "dark" ? "#121212" : "#f5f5f5",
     color: theme === "dark" ? "#fff" : "#000",
@@ -184,6 +194,9 @@ export default function Goals({ theme, currency = "USD" }) {
                     />
                     <button onClick={() => addMoney(goal._id)} style={{ padding: "10px 20px", backgroundColor: "#2ecc71", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" }}>
                       Add
+                    </button>
+                    <button onClick={() => removeMoney(goal._id)} style={{ padding: "10px 20px", backgroundColor: "#e74c3c", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" }}>
+                      Remove
                     </button>
                   </div>
                 )}
