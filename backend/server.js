@@ -15,6 +15,7 @@ import "./cronJobs/recurringExpenses.js";
 // Routes
 import expenseRoutes from "./routes/ExpenseRoutes.js";
 import budgetRoutes from "./routes/budget.js";
+import goalRoutes from "./routes/goals.js";
 
 import User from "./models/user.js"; // User model
 
@@ -302,6 +303,7 @@ app.put("/api/auth/update-profile", authMiddleware, async (req, res) => {
 // =============================
 app.use("/api/expenses", authMiddleware, expenseRoutes);
 app.use("/api/budget", authMiddleware, budgetRoutes);
+app.use("/api/goals", authMiddleware, goalRoutes);
 
 // Root test route
 app.get("/", (req, res) => {
