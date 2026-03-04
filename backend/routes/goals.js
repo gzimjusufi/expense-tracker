@@ -1,5 +1,7 @@
 import express from "express";
 import Goal from "../models/Goal.js";
+import User from "../models/user.js";
+import { sendGoalReached } from "../utils/mailer.js";
 
 const router = express.Router();
 
@@ -43,6 +45,13 @@ router.put("/:id/add", async (req, res) => {
       { new: true }
     );
     if (!goal) return res.status(404).json({ message: "Goal not found" });
+
+    // Send email if goal is reached
+    if (goal.savedAmount >= goal.targetAmount) {
+      const user = await User.findById(req.user.id);
+      if (user) await sendGoalReached(user.email, user.name, goal.name, goal.savedAmount);
+    }
+
     res.json(goal);
   } catch (err) {
     res.status(500).json({ message: err.message });

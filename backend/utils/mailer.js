@@ -296,6 +296,99 @@ export async function sendBudgetExceeded(to, name, spent, budget) {
   }
 }
 
+export async function sendWeeklyGoalsSummary(to, name, goals) {
+  try {
+    const goalRows = goals.map(g => {
+      const progress = Math.min((g.savedAmount / g.targetAmount) * 100, 100).toFixed(1);
+      return `
+        <tr>
+          <td style="padding:8px 12px;">${g.emoji} ${g.name}</td>
+          <td style="padding:8px 12px;text-align:right;">$${g.savedAmount.toFixed(2)}</td>
+          <td style="padding:8px 12px;text-align:right;">$${g.targetAmount.toFixed(2)}</td>
+          <td style="padding:8px 12px;text-align:right;">${progress}%</td>
+        </tr>
+      `;
+    }).join("");
+
+    const content = `
+      <p style="font-size:15px;">Hi ${cleanText(name)},</p>
+      <p style="font-size:15px;">Here's your weekly savings goals update:</p>
+      <table style="width:100%;border-collapse:collapse;margin-top:15px;">
+        <thead>
+          <tr style="background-color:#f0f0f0;">
+            <th style="text-align:left;padding:8px 12px;">Goal</th>
+            <th style="text-align:right;padding:8px 12px;">Saved</th>
+            <th style="text-align:right;padding:8px 12px;">Target</th>
+            <th style="text-align:right;padding:8px 12px;">Progress</th>
+          </tr>
+        </thead>
+        <tbody>${goalRows}</tbody>
+      </table>
+      <p style="margin-top:20px;font-size:15px;">Keep saving! 💪</p>
+    `;
+
+    const html = baseTemplate("📊 Weekly Goals Summary", content);
+    await transporter.sendMail({
+      from: `"Expense Tracker" <${process.env.EMAIL_USER}>`,
+      to,
+      subject: "📊 Your Weekly Savings Goals Summary",
+      html,
+    });
+    console.log(`✅ Weekly goals summary sent to ${to}`);
+  } catch (err) {
+    console.error("❌ Error sending weekly goals summary:", err);
+  }
+}
+
+export async function sendGoalReached(to, name, goalName, amount) {
+  try {
+    const content = `
+      <p style="font-size:15px;">Hi ${cleanText(name)},</p>
+      <p style="font-size:15px;">🎉 Congratulations! You've reached your savings goal!</p>
+      <p style="font-size:15px;">
+        <strong>Goal:</strong> ${cleanText(goalName)}<br/>
+        <strong>Amount Saved:</strong> $${Number(amount).toFixed(2)}
+      </p>
+      <p style="font-size:15px;">Keep up the great work! 💪</p>
+    `;
+    const html = baseTemplate("🎉 Goal Reached!", content);
+    await transporter.sendMail({
+      from: `"Expense Tracker" <${process.env.EMAIL_USER}>`,
+      to,
+      subject: `🎉 You've reached your savings goal: ${goalName}`,
+      html,
+    });
+    console.log(`✅ Goal reached email sent to ${to}`);
+  } catch (err) {
+    console.error("❌ Error sending goal reached email:", err);
+  }
+}
+
+export async function sendGoalDeadlineReminder(to, name, goalName, remaining, deadline) {
+  try {
+    const content = `
+      <p style="font-size:15px;">Hi ${cleanText(name)},</p>
+      <p style="font-size:15px;">⏰ Your savings goal deadline is approaching!</p>
+      <p style="font-size:15px;">
+        <strong>Goal:</strong> ${cleanText(goalName)}<br/>
+        <strong>Deadline:</strong> ${new Date(deadline).toLocaleDateString()}<br/>
+        <strong>Still needed:</strong> $${Number(remaining).toFixed(2)}
+      </p>
+      <p style="font-size:15px;">Keep saving to reach your goal in time! 💰</p>
+    `;
+    const html = baseTemplate("⏰ Goal Deadline Approaching", content);
+    await transporter.sendMail({
+      from: `"Expense Tracker" <${process.env.EMAIL_USER}>`,
+      to,
+      subject: `⏰ Deadline approaching for your goal: ${goalName}`,
+      html,
+    });
+    console.log(`✅ Goal deadline reminder sent to ${to}`);
+  } catch (err) {
+    console.error("❌ Error sending goal deadline reminder:", err);
+  }
+}
+
 export const sendVerificationEmail = async (email, token) => {
   const url = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
 

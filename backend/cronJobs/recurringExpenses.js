@@ -1,8 +1,10 @@
 import cron from "node-cron";
 import Expense from "../models/Expense.js";
 import User from "../models/user.js";
-import { sendExpenseReminder, sendMonthlySummary } from "../utils/mailer.js"; // ✅ Use the shared mailer
+import Goal from "../models/Goal.js";
+import { sendExpenseReminder, sendMonthlySummary, sendGoalDeadlineReminder, sendWeeklyGoalsSummary } from "../utils/mailer.js";
 import dotenv from "dotenv";
+
 
 dotenv.config();
 
@@ -30,26 +32,22 @@ function calculateNextDue(recurrence, fromDate) {
 /* =========================
    🕛 CRON JOB 1: DAILY REMINDERS
 ========================= */
-// Runs every day at midnight (00:00)
 cron.schedule("0 0 * * *", async () => {
   try {
     const today = new Date();
-
     console.log("⏰ Running daily recurring expense check:", today.toDateString());
 
-    // Find all recurring expenses that are due today or earlier
     const dueExpenses = await Expense.find({
       recurring: true,
       nextDueDate: { $lte: today },
     });
 
     for (let expense of dueExpenses) {
-      const user = await User.findById(expense.userId);
+      const user = await User.findById(expense.user);
       if (!user) continue;
 
-      // Clone expense for the next cycle
       const newExpense = new Expense({
-        userId: expense.userId,
+        user: expense.user,
         category: expense.category,
         amount: expense.amount,
         date: expense.nextDueDate,
@@ -60,7 +58,6 @@ cron.schedule("0 0 * * *", async () => {
       });
       await newExpense.save();
 
-      // ✅ Send polished email reminder
       await sendExpenseReminder(user.email, "💡 Expense Reminder", {
         category: expense.category,
         description: expense.description,
@@ -68,7 +65,6 @@ cron.schedule("0 0 * * *", async () => {
         nextDueDate: expense.nextDueDate,
       });
 
-      // Update original expense’s next due date
       expense.nextDueDate = calculateNextDue(expense.recurrence, expense.nextDueDate);
       await expense.save();
 
@@ -88,7 +84,6 @@ cron.schedule("0 0 * * *", async () => {
 /* =========================
    📊 CRON JOB 2: MONTHLY SUMMARY
 ========================= */
-// Runs at midnight on the 1st day of every month
 cron.schedule("0 0 1 * *", async () => {
   try {
     console.log("📊 Running monthly expense summary job...");
@@ -103,29 +98,22 @@ cron.schedule("0 0 1 * *", async () => {
       const endOfMonth = new Date(startOfMonth);
       endOfMonth.setMonth(endOfMonth.getMonth() + 1);
 
-      // Get user’s expenses for the last month
       const expenses = await Expense.find({
-        userId: user._id,
+        user: user._id,
         date: { $gte: startOfMonth, $lt: endOfMonth },
       });
 
       if (expenses.length === 0) continue;
 
-      // Group by category
       const summary = expenses.reduce((acc, e) => {
         acc[e.category] = (acc[e.category] || 0) + e.amount;
         return acc;
       }, {});
 
-      const categories = Object.entries(summary).map(([name, amount]) => ({
-        name,
-        amount,
-      }));
-
+      const categories = Object.entries(summary).map(([name, amount]) => ({ name, amount }));
       const total = categories.reduce((sum, c) => sum + c.amount, 0);
 
-      // ✅ Send monthly summary email
-      await sendMonthlySummary(user.email, user.username || user.name || "User", {
+      await sendMonthlySummary(user.email, user.name || "User", {
         month: new Date().toLocaleString("default", { month: "long", year: "numeric" }),
         total,
         categories,
@@ -137,5 +125,54 @@ cron.schedule("0 0 1 * *", async () => {
     console.log("✅ Monthly summary job completed successfully.");
   } catch (err) {
     console.error("❌ Error running monthly summary job:", err);
+  }
+});
+
+/* =========================
+   ⏰ CRON JOB 3: GOAL DEADLINE REMINDERS
+========================= */
+cron.schedule("0 9 * * *", async () => {
+  try {
+    console.log("⏰ Checking goal deadlines...");
+    const today = new Date();
+    const in7Days = new Date();
+    in7Days.setDate(today.getDate() + 7);
+
+    const goals = await Goal.find({
+      deadline: { $gte: today, $lte: in7Days },
+      $expr: { $lt: ["$savedAmount", "$targetAmount"] }
+    });
+
+    for (let goal of goals) {
+      const user = await User.findById(goal.user);
+      if (!user) continue;
+      const remaining = goal.targetAmount - goal.savedAmount;
+      await sendGoalDeadlineReminder(user.email, user.name, goal.name, remaining, goal.deadline);
+      console.log(`⏰ Deadline reminder sent to ${user.email} for goal: ${goal.name}`);
+    }
+  } catch (err) {
+    console.error("❌ Error checking goal deadlines:", err);
+  }
+});
+
+/* =========================
+   📊 CRON JOB 4: WEEKLY GOALS SUMMARY
+========================= */
+cron.schedule("0 9 * * 1", async () => {
+  try {
+    console.log("📊 Sending weekly goal summaries...");
+    const users = await User.find();
+
+    for (let user of users) {
+      const goals = await Goal.find({ user: user._id });
+      if (goals.length === 0) continue;
+
+      await sendWeeklyGoalsSummary(user.email, user.name, goals);
+      console.log(`📊 Weekly goal summary sent to ${user.email}`);
+    }
+
+    console.log("✅ Weekly goal summaries sent successfully.");
+  } catch (err) {
+    console.error("❌ Error sending weekly goal summaries:", err);
   }
 });
