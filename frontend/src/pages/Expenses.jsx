@@ -11,6 +11,7 @@ const Expenses = ({ theme, currency }) => {
   const [description, setDescription] = useState("");
   const [expenses, setExpenses] = useState([]);
   const [search, setSearch] = useState("");
+  const [tags, setTags] = useState("");
 // Attach token to requests
 const authHeader = () => {
   const token = localStorage.getItem("token"); // or sessionStorage if you stored it there
@@ -97,6 +98,7 @@ const authHeader = () => {
     }
 
     try {
+      console.log("Tags being sent:", tags);
       const res = await axios.post("http://localhost:5000/api/expenses", {
   category,
   amount,
@@ -104,6 +106,7 @@ const authHeader = () => {
   description,
   recurring,
   recurrence: recurring ? recurrence : null,
+  tags: tags ? tags.split(",").map(t => t.trim()) : [],
 }, authHeader());
       setExpenses([...expenses, res.data]);
       setCategory("Food");
@@ -112,6 +115,7 @@ setDate("");
 setDescription("");
 setRecurring(false);
 setRecurrence("");
+setTags("");
     } catch (err) {
       console.error("Error adding expense:", err);
     }
@@ -139,6 +143,7 @@ setRecurrence("");
   recurrence: expense.recurring
     ? expense.recurrence || "monthly" // ✅ Always default to "monthly"
     : null,
+    tags: expense.tags || [],
 });
 
     setIsModalOpen(true);
@@ -311,6 +316,15 @@ setRecurrence("");
             onChange={(e) => setDescription(e.target.value)}
           />
         </div>
+        <div className="col-md-3">
+  <input
+    type="text"
+    className={`form-control ${theme === "dark" ? "bg-secondary text-light border-0" : ""}`}
+    placeholder="Tags (comma separated)"
+    value={tags}
+    onChange={(e) => setTags(e.target.value)}
+  />
+</div>
         <div className="col-md-1">
           <div className="col-md-3 d-flex align-items-center">
   <input
@@ -345,7 +359,7 @@ setRecurrence("");
   <input
     type="text"
     className={`form-control ${theme === "dark" ? "bg-secondary text-light border-0" : ""}`}
-    placeholder="🔍 Search by description or category..."
+    placeholder="🔍 Search by description, category or tags..."
     value={search}
     onChange={(e) => setSearch(e.target.value)}
   />
@@ -365,6 +379,7 @@ setRecurrence("");
               <th>Date</th>
               <th>Description</th>
               <th>Recurring</th>
+              <th>Tags</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -374,7 +389,8 @@ setRecurrence("");
   const q = search.toLowerCase();
   return (
     expense.description?.toLowerCase().includes(q) ||
-    expense.category?.toLowerCase().includes(q)
+    expense.category?.toLowerCase().includes(q) ||
+    expense.tags?.some(t => t.toLowerCase().includes(q))
   );
 }).map((expense) => (
                 <motion.tr
@@ -409,6 +425,21 @@ setRecurrence("");
   ) : (
     "—"
   )}
+</td>
+<td>          
+  {expense.tags?.length > 0 ? expense.tags.map((tag, i) => (
+    <span key={i} style={{
+      display: "inline-block",
+      backgroundColor: "#6366f1",
+      color: "#fff",
+      padding: "2px 8px",
+      borderRadius: "12px",
+      fontSize: "12px",
+      marginRight: "4px",
+    }}>
+      #{tag}
+    </span>
+  )) : "—"}
 </td>
                   <td>
                     <button
@@ -511,6 +542,15 @@ setRecurrence("");
               </div>
               <div className="mb-2">
   <label>
+    <div className="mb-2">
+  <input
+    type="text"
+    className="form-control"
+    placeholder="Tags (comma separated)"
+    value={editData.tags?.join(", ") || ""}
+    onChange={(e) => setEditData({ ...editData, tags: e.target.value.split(",").map(t => t.trim()) })}
+  />
+</div>
     <input
       type="checkbox"
       checked={editData.recurring || false}

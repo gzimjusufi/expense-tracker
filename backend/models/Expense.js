@@ -12,6 +12,7 @@ const ExpenseSchema = new mongoose.Schema({
     enum: ["daily", "weekly", "monthly"], 
   },
   nextDueDate: { type: Date },
+  tags: { type: [String], default: [] },
 });
 
 const Expense = mongoose.model("Expense", ExpenseSchema);

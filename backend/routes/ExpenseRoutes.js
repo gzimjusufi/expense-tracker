@@ -13,7 +13,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 // =========================
 router.post("/", async (req, res) => {
   try {
-    const { category, amount, date, description, recurring, recurrence } = req.body;
+    const { category, amount, date, description, recurring, recurrence, tags } = req.body;
 
     if (!category || !amount || !date) {
       return res.status(400).json({ message: "Category, amount, and date are required" });
@@ -33,6 +33,7 @@ router.post("/", async (req, res) => {
       recurring: recurring || false,
       recurrence: recurring ? recurrence : null,
       nextDueDate,
+      tags: tags || [],
       user: req.user.id, // 🔹 USER SCOPED
     });
 
@@ -126,7 +127,7 @@ router.delete("/:id", async (req, res) => {
 // =========================
 router.put("/:id", async (req, res) => {
   try {
-    const { category, amount, date, description, recurring, recurrence } = req.body;
+    const { category, amount, date, description, recurring, recurrence, tags } = req.body;
 
     if (!category || !amount || !date) {
       return res.status(400).json({ message: "Category, amount, and date are required" });
@@ -144,6 +145,7 @@ router.put("/:id", async (req, res) => {
         recurring,
         recurrence: recurring ? recurrence : null,
         nextDueDate,
+        tags: tags || [],
       },
       { new: true }
     );
