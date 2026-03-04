@@ -523,6 +523,54 @@ export default function Reports({ theme = "dark", currency: userCurrency = "USD"
     localStorage.setItem("savedFilters", JSON.stringify(next));
   };
 
+  const [showShareModal, setShowShareModal] = useState(false);
+const [shareEmail, setShareEmail] = useState("");
+const [shareSending, setShareSending] = useState(false);
+
+const handleShareReport = async () => {
+  if (!shareEmail) return alert("Please enter an email address!");
+  setShareSending(true);
+  try {
+    // Generate PDF
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text("Expenses Report", 14, 15);
+
+    const tableColumn = ["Date", "Category", "Description", "Amount"];
+    const tableRows = filtered.map(exp => [
+      exp.date ? new Date(exp.date).toLocaleDateString() : "N/A",
+      exp.category || "N/A",
+      exp.description || "-",
+      formatCurrency(exp.amount, userCurrency),
+    ]);
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 25,
+      styles: { fontSize: 11, cellPadding: 4 },
+      headStyles: { fillColor: [52, 152, 219], textColor: 255, halign: "center" },
+    });
+
+    const pdfBase64 = doc.output("datauristring").split(",")[1];
+
+    await axios.post("http://localhost:5000/api/expenses/share-report", {
+      email: shareEmail,
+      pdfBase64,
+      filename: "expenses_report.pdf",
+    }, authHeader());
+
+    alert(`Report sent to ${shareEmail}!`);
+    setShowShareModal(false);
+    setShareEmail("");
+  } catch (err) {
+    console.error(err);
+    alert("Failed to send report.");
+  } finally {
+    setShareSending(false);
+  }
+};
+
   // -------------------------
   // UI
   // -------------------------
@@ -550,6 +598,12 @@ export default function Reports({ theme = "dark", currency: userCurrency = "USD"
             className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-xl shadow"
           >
             Open Filters
+          </button>
+          <button
+          onClick={() => setShowShareModal(true)}
+          className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded-xl shadow"
+          >
+            Share Report
           </button>
           <button
             onClick={handleExport}
@@ -764,6 +818,35 @@ export default function Reports({ theme = "dark", currency: userCurrency = "USD"
   ) : (
     <p className="opacity-70 text-center">No expense data to display.</p>
   )
+)}
+{showShareModal && (
+  <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000 }}>
+    <div className={`rounded-2xl p-6 shadow ${theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-gray-900"}`} style={{ minWidth: "350px" }}>
+      <h4 className="text-xl font-bold mb-4">📤 Share Report via Email</h4>
+      <input
+        type="email"
+        placeholder="Enter email address"
+        value={shareEmail}
+        onChange={e => setShareEmail(e.target.value)}
+        className={`w-full px-4 py-2 rounded-lg border mb-4 ${theme === "dark" ? "bg-gray-800 text-white border-gray-600" : "bg-white border-gray-300"}`}
+      />
+      <div className="flex gap-3">
+        <button
+          onClick={handleShareReport}
+          disabled={shareSending}
+          className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold"
+        >
+          {shareSending ? "Sending..." : "Send"}
+        </button>
+        <button
+          onClick={() => setShowShareModal(false)}
+          className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
 )}
       </div>
       

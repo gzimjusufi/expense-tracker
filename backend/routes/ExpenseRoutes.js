@@ -3,7 +3,8 @@ import Expense from "../models/Expense.js";
 import { Parser } from "json2csv";
 import multer from "multer";
 import User from "../models/user.js";
-import { sendBudgetWarning, sendBudgetExceeded } from "../utils/mailer.js";
+import { sendBudgetWarning, sendBudgetExceeded, sendReportEmail } from "../utils/mailer.js";
+
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -330,6 +331,22 @@ router.get("/compare", async (req, res) => {
   } catch (err) {
     console.error("Error comparing expenses:", err);
     res.status(500).json({ message: "Failed to compare expenses" });
+  }
+});
+
+
+router.post("/share-report", async (req, res) => {
+  try {
+    const { email, pdfBase64, filename } = req.body;
+    if (!email || !pdfBase64) return res.status(400).json({ message: "Email and PDF are required" });
+
+    const pdfBuffer = Buffer.from(pdfBase64, "base64");
+    await sendReportEmail(email, pdfBuffer, filename);
+
+    res.json({ message: "Report sent successfully!" });
+  } catch (err) {
+    console.error("Error sharing report:", err);
+    res.status(500).json({ message: "Failed to send report" });
   }
 });
 
