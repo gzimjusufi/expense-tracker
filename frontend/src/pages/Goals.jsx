@@ -105,9 +105,9 @@ export default function Goals({ theme, currency = "USD" }) {
         <h4>Add New Goal</h4>
         <form onSubmit={addGoal}>
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-            <input style={{ ...inputStyle, flex: 1 }} placeholder="Goal name (e.g. Buy a car)" value={name} onChange={e => setName(e.target.value)} />
-            <input style={{ ...inputStyle, flex: 1 }} type="number" placeholder="Target amount" value={targetAmount} onChange={e => setTargetAmount(e.target.value)} />
-            <input style={{ ...inputStyle, flex: 1 }} type="date" value={deadline} onChange={e => setDeadline(e.target.value)} />
+            <input style={{ ...inputStyle, flex: "1 1 200px" }} placeholder="Goal name (e.g. Buy a car)" value={name} onChange={e => setName(e.target.value)} />
+            <input style={{ ...inputStyle, flex: "1 1 200px" }} type="number" placeholder="Target amount" value={targetAmount} onChange={e => setTargetAmount(e.target.value)} />
+            <input style={{ ...inputStyle, flex: "1 1 200px" }} type="date" value={deadline} onChange={e => setDeadline(e.target.value)} />
             <input style={{ ...inputStyle, width: "80px", flex: "none" }} placeholder="🎯" value={emoji} onChange={e => setEmoji(e.target.value)} />
           </div>
           <button type="submit" style={{ padding: "10px 20px", backgroundColor: "#6366f1", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" }}>
@@ -160,7 +160,7 @@ export default function Goals({ theme, currency = "USD" }) {
                   </div>
                 </div>
 
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px", fontSize: "14px", opacity: 0.8 }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "8px", fontSize: "14px", opacity: 0.8 }}>
                   <span>Saved: <strong>{formatCurrency(goal.savedAmount, currency)}</strong></span>
                   <span>Target: <strong>{formatCurrency(goal.targetAmount, currency)}</strong></span>
                   {goal.deadline && <span>Deadline: <strong>{new Date(goal.deadline).toLocaleDateString()}</strong></span>}
@@ -209,13 +209,13 @@ export default function Goals({ theme, currency = "USD" }) {
       {/* Edit Modal */}
       {editingGoal && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
-          <div style={{ ...cardStyle, minWidth: "350px", marginBottom: 0 }}>
+          <div style={{ ...cardStyle, minWidth: "300px", maxWidth: "95vw", width: "95vw", marginBottom: 0 }}>
             <h4>Edit Goal</h4>
             <input style={inputStyle} placeholder="Goal name" value={editData.name} onChange={e => setEditData({ ...editData, name: e.target.value })} />
             <input style={inputStyle} type="number" placeholder="Target amount" value={editData.targetAmount} onChange={e => setEditData({ ...editData, targetAmount: e.target.value })} />
             <input style={inputStyle} type="date" value={editData.deadline} onChange={e => setEditData({ ...editData, deadline: e.target.value })} />
             <input style={inputStyle} placeholder="Emoji" value={editData.emoji} onChange={e => setEditData({ ...editData, emoji: e.target.value })} />
-            <div style={{ display: "flex", gap: "10px" }}>
+            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
               <button onClick={saveEdit} style={{ flex: 1, padding: "10px", backgroundColor: "#6366f1", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer" }}>Save</button>
               <button onClick={() => setEditingGoal(null)} style={{ flex: 1, padding: "10px", backgroundColor: "#95a5a6", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer" }}>Cancel</button>
             </div>

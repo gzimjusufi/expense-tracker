@@ -60,10 +60,11 @@ export default function ExpenseList({ expenses, onDelete, theme, readOnly = fals
   const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 
   return (
-    <div>
+    <div style={{ overflowX: "auto", width: "100%" }}>
       <h3 style={{ marginBottom: "10px" }}>Expense List</h3>
 
-      <table style={tableStyle}>
+
+      <table style={{ ...tableStyle, minWidth: "600px" }}>
         <thead>
           <tr>
             <th style={thStyle}>Date</th>

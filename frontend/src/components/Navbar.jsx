@@ -91,7 +91,7 @@ const handleLogout = () => {
       <div
         style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
       >
-        <h1 style={{ fontWeight: "bold" }}>Expense Tracker</h1>
+        <h1 style={{ fontWeight: "bold", fontSize: window.innerWidth < 600 ? "18px" : "24px" }}>Expense Tracker</h1>
 
         {/* Desktop Links */}
         <div className="d-none d-md-flex" style={{ alignItems: "center" }}>
@@ -150,11 +150,11 @@ const handleLogout = () => {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div style={{ marginTop: "10px" }}>
+        <div style={{ marginTop: "10px", padding: "5px 0", borderTop: `1px solid ${theme === "dark" ? "#333" : "#eee"}` }}>
           {links.map((link) => (
             <Link
               key={link.path}
-              style={{ display: "block", padding: "5px", color: navStyle.color }}
+              style={{ display: "block", padding: "10px 5px", color: navStyle.color, borderBottom: `1px solid ${theme === "dark" ? "#333" : "#eee"}` }}
               to={link.path}
             >
               {link.name}
@@ -191,13 +191,13 @@ const handleLogout = () => {
           ) : (
             <>
               <Link
-                style={{ display: "block", padding: "5px", color: navStyle.color }}
+                style={{ display: "block", padding: "10px 5px", color: navStyle.color, borderBottom: `1px solid ${theme === "dark" ? "#333" : "#eee"}` }}
                 to="/login"
               >
                 Login
               </Link>
               <Link
-                style={{ display: "block", padding: "5px", color: navStyle.color }}
+                style={{ display: "block", padding: "10px 5px", color: navStyle.color, borderBottom: `1px solid ${theme === "dark" ? "#333" : "#eee"}` }}
                 to="/register"
               >
                 Register

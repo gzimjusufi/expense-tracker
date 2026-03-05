@@ -215,11 +215,14 @@ setPaymentMethod("card");
   };
 
   return (
-    <div
-      className={`container mt-4 p-4 rounded shadow ${
-        theme === "dark" ? "bg-dark text-light" : "bg-light text-dark"
-      }`}
-    >
+<div
+  style={{
+    backgroundColor: theme === "dark" ? "#121212" : "#f5f5f5",
+    color: theme === "dark" ? "#fff" : "#000",
+    minHeight: "100vh",
+    padding: "20px",
+  }}
+>
       <h1 className="mb-4 text-center">Expense Tracker</h1>
 
       {/* Budget */}
@@ -228,7 +231,7 @@ setPaymentMethod("card");
           theme === "dark" ? "bg-secondary text-light" : "bg-white"
         }`}
       >
-        <div className="d-flex justify-content-between align-items-center mb-2">
+        <div className="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
           <h5 className="m-0">Monthly Budget</h5>
           <div className="d-flex gap-2 align-items-center">
             <input
@@ -273,7 +276,7 @@ setPaymentMethod("card");
 
       {/* Add Expense Form */}
       <form className="row g-3 mb-4" onSubmit={addExpense}>
-        <div className="col-md-3">
+        <div className="col-12 col-md-3">
           <select
             className={`form-select ${
               theme === "dark" ? "bg-secondary text-light border-0" : ""
@@ -290,7 +293,7 @@ setPaymentMethod("card");
             <option>Other</option>
           </select>
         </div>
-        <div className="col-md-2">
+        <div className="col-12 col-md-2">
           <input
             type="number"
             className={`form-control ${
@@ -301,7 +304,7 @@ setPaymentMethod("card");
             onChange={(e) => setAmount(e.target.value)}
           />
         </div>
-        <div className="col-md-3">
+        <div className="col-12 col-md-3">
           <input
             type="date"
             className={`form-control ${
@@ -311,7 +314,7 @@ setPaymentMethod("card");
             onChange={(e) => setDate(e.target.value)}
           />
         </div>
-        <div className="col-md-3">
+        <div className="col-12 col-md-3">
           <input
             type="text"
             className={`form-control ${
@@ -322,7 +325,7 @@ setPaymentMethod("card");
             onChange={(e) => setDescription(e.target.value)}
           />
         </div>
-        <div className="col-md-3">
+        <div className="col-12 col-md-3">
   <input
     type="text"
     className={`form-control ${theme === "dark" ? "bg-secondary text-light border-0" : ""}`}
@@ -331,7 +334,7 @@ setPaymentMethod("card");
     onChange={(e) => setTags(e.target.value)}
   />
 </div>
-<div className="col-md-2">
+<div className="col-12 col-md-2">
   <select
     className={`form-select ${theme === "dark" ? "bg-secondary text-light border-0" : ""}`}
     value={paymentMethod}
@@ -343,7 +346,7 @@ setPaymentMethod("card");
     <option value="other">🔄 Other</option>
   </select>
 </div>
-        <div className="col-md-1">
+        <div className="col-12 col-md-1">
           <div className="col-md-3 d-flex align-items-center">
   <input
     type="checkbox"
@@ -516,7 +519,7 @@ setPaymentMethod("card");
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
-              style={{ minWidth: "400px" }}
+              style={{ minWidth: "300px", maxWidth: "95vw", width: "95vw" }}
             >
               <h5>Edit Expense</h5>
               <div className="mb-2">

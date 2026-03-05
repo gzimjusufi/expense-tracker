@@ -592,28 +592,28 @@ const handleShareReport = async () => {
 </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 w-full">
           <button
             onClick={() => setIsDrawerOpen(true)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-xl shadow"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-3 py-2 rounded-xl shadow text-sm"
           >
             Open Filters
           </button>
           <button
           onClick={() => setShowShareModal(true)}
-          className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded-xl shadow"
+          className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-3 py-2 rounded-xl shadow text-sm"
           >
             Share Report
           </button>
           <button
             onClick={handleExport}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-xl shadow"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-2 rounded-xl shadow text-sm"
           >
             Export CSV
           </button>
           <button
             onClick={handleExportPDF}
-            className="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-xl shadow"
+            className="bg-red-600 hover:bg-red-700 text-white font-semibold px-3 py-2 rounded-xl shadow text-sm"
           >
             Export PDF
           </button>
@@ -627,20 +627,20 @@ const handleShareReport = async () => {
             />
             <span
               onClick={() => document.querySelector('input[type="file"]').click()}
-              className="inline-block bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-xl shadow"
+              className="inline-block bg-green-600 hover:bg-green-700 text-white font-semibold px-3 py-2 rounded-xl shadow text-sm"
             >
               Import CSV
             </span>
           </label>
           <button
             onClick={handleImport}
-            className="bg-green-700 hover:bg-green-800 text-white font-semibold px-4 py-2 rounded-xl shadow"
+            className="bg-green-700 hover:bg-green-800 text-white font-semibold px-3 py-2 rounded-xl shadow text-sm"
           >
             Upload
           </button>
           <button
             onClick={resetFilters}
-            className="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded-xl shadow"
+            className="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-3 py-2 rounded-xl shadow text-sm"
           >
             Reset
           </button>
@@ -689,7 +689,7 @@ const handleShareReport = async () => {
       </div>
 
       {/* Tabs */}
-      <div className="mb-4 flex gap-2">
+      <div className="mb-4 flex flex-wrap gap-2">
         {[
           { key: "summary", label: "Summary" },
           { key: "trends", label: "Trends" },
@@ -716,7 +716,7 @@ const handleShareReport = async () => {
       <div className={`rounded-2xl p-6 shadow ${theme === "dark" ? "bg-gray-900" : "bg-white"}`}>
         {activeTab === "summary" && (
           monthlyTotals.length > 0 ? (
-            <ResponsiveContainer width="100%" height={420}>
+            <ResponsiveContainer width="100%" height={window.innerWidth < 600 ? 250 : 420}>
               <BarChart data={monthlyTotals} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={theme === "dark" ? "#333" : "#ddd"} />
                 <XAxis dataKey="month" stroke={theme === "dark" ? "#fff" : "#111"} />
@@ -740,7 +740,7 @@ const handleShareReport = async () => {
 
         {activeTab === "trends" && (
           monthlyTotals.length > 0 ? (
-            <ResponsiveContainer width="100%" height={420}>
+            <ResponsiveContainer width="100%" height={window.innerWidth < 600 ? 250 : 420}>
               <LineChart data={monthlyTotals} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={theme === "dark" ? "#333" : "#ddd"} />
                 <XAxis dataKey="month" stroke={theme === "dark" ? "#fff" : "#111"} />
@@ -765,7 +765,7 @@ const handleShareReport = async () => {
         {activeTab === "comparison" && (
           compareMode ? (
             compareData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={420}>
+              <ResponsiveContainer width="100%" height={window.innerWidth < 600 ? 250 : 420}>
                 <BarChart data={compareData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke={theme === "dark" ? "#333" : "#ddd"} />
                   <XAxis dataKey="month" stroke={theme === "dark" ? "#fff" : "#111"} />
@@ -792,7 +792,7 @@ const handleShareReport = async () => {
         )}
         {activeTab === "pie" && (
   filtered.length > 0 ? (
-    <ResponsiveContainer width="100%" height={420}>
+    <ResponsiveContainer width="100%" height={window.innerWidth < 600 ? 300 : 450}>
       <PieChart>
         <Pie
           data={Object.entries(
@@ -803,7 +803,7 @@ const handleShareReport = async () => {
           ).map(([name, value]) => ({ name, value }))}
           cx="50%"
           cy="50%"
-          outerRadius={150}
+          outerRadius={window.innerWidth < 600 ? 80 : 150}
           dataKey="value"
           label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
         >

@@ -73,14 +73,17 @@ export default function CalendarPage({ theme, currency = "USD" }) {
   .rbc-show-more { color: #6366f1; }
   .rbc-toolbar button { color: ${theme === "dark" ? "#fff" : "#000"}; background-color: ${theme === "dark" ? "#2d2d2d" : "#f0f0f0"}; border: 1px solid ${theme === "dark" ? "#555" : "#ccc"}; }
   .rbc-toolbar button:hover { background-color: ${theme === "dark" ? "#3d3d3d" : "#e0e0e0"}; }
+  .rbc-toolbar { flex-wrap: wrap; gap: 5px; }
+  .rbc-toolbar-label { width: 100%; text-align: center; }
 `}</style>
 
       <div style={{
         backgroundColor: theme === "dark" ? "#1e1e1e" : "#fff",
         padding: "20px",
         borderRadius: "10px",
-        height: "600px",
+        height: window.innerWidth < 600 ? "400px" : "600px",
       }}>
+
         <Calendar
           localizer={localizer}
           events={events}
@@ -106,8 +109,9 @@ export default function CalendarPage({ theme, currency = "USD" }) {
             color: theme === "dark" ? "#fff" : "#000",
             padding: "25px",
             borderRadius: "10px",
-            minWidth: "350px",
-            maxWidth: "500px",
+            minWidth: "300px",
+            maxWidth: "95vw",
+            width: window.innerWidth < 600 ? "95vw" : "500px",
           }}>
             <h4>📅 {selectedDate}</h4>
             <hr />

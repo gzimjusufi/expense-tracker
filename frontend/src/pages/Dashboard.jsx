@@ -163,12 +163,13 @@ export default function Dashboard({ theme, user, currency }) {
     backgroundColor: theme === "dark" ? "#121212" : "#f5f5f5",
     color: theme === "dark" ? "#ffffff" : "#000000",
     minHeight: "100vh",
-    padding: "20px",
+    padding: window.innerWidth < 600 ? "10px" : "20px",
     transition: "all 0.3s ease-in-out",
   };
 
   const cardStyle = {
     flex: 1,
+    minWidth: "140px",
     padding: "15px",
     borderRadius: "8px",
     textAlign: "center",
@@ -182,7 +183,7 @@ export default function Dashboard({ theme, user, currency }) {
       <Insights expenses={filteredExpenses} budget={budget} theme={theme} currency={currency} />
 
       {/* Summary Cards */}
-      <div style={{ display: "flex", gap: "20px", marginBottom: "20px", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: "20px", marginBottom: "20px", flexWrap: "wrap", flexDirection: "row" }}>
         <div style={cardStyle}>
           <h4>Total Expenses</h4>
           <p>{formatCurrency(totalExpenses, currency)}</p>
@@ -248,6 +249,7 @@ export default function Dashboard({ theme, user, currency }) {
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
           style={{
+            flex: "1 1 150px",
             padding: "5px",
             borderRadius: "6px",
             border: theme === "dark" ? "1px solid #555" : "1px solid #ccc",
@@ -267,6 +269,7 @@ export default function Dashboard({ theme, user, currency }) {
           value={fromDate}
           onChange={(e) => setFromDate(e.target.value)}
           style={{
+            flex: "1 1 130px",
             padding: "5px",
             borderRadius: "6px",
             border: theme === "dark" ? "1px solid #555" : "1px solid #ccc",
@@ -279,6 +282,7 @@ export default function Dashboard({ theme, user, currency }) {
           value={toDate}
           onChange={(e) => setToDate(e.target.value)}
           style={{
+            flex: "1 1 130px",
             padding: "5px",
             borderRadius: "6px",
             border: theme === "dark" ? "1px solid #555" : "1px solid #ccc",
@@ -289,6 +293,7 @@ export default function Dashboard({ theme, user, currency }) {
         <button
           onClick={applyFilters}
           style={{
+            flex: "1 1 80px",
             padding: "6px 10px",
             borderRadius: "6px",
             cursor: "pointer",
@@ -316,7 +321,7 @@ export default function Dashboard({ theme, user, currency }) {
             marginTop: "20px",
           }}
         >
-          <ResponsiveContainer width="100%" height={400}>
+          <ResponsiveContainer width="100%" height={window.innerWidth < 600 ? 250 : 400}>
             <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={theme === "dark" ? "#333" : "#ccc"} />
               <XAxis dataKey="month" stroke={theme === "dark" ? "#fff" : "#000"} />

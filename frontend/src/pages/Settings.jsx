@@ -101,7 +101,7 @@ const handleSaveProfile = async () => {
     backgroundColor: theme === "dark" ? "#121212" : "#f5f5f5",
     color: theme === "dark" ? "#fff" : "#000",
     minHeight: "100vh",
-    padding: "30px",
+    padding: window.innerWidth < 600 ? "15px" : "30px",
   };
 
   const cardStyle = {
@@ -109,6 +109,7 @@ const handleSaveProfile = async () => {
     borderRadius: "14px",
     padding: "25px",
     maxWidth: "500px",
+    width: "100%",
     marginBottom: "25px",
     boxShadow:
       theme === "dark"

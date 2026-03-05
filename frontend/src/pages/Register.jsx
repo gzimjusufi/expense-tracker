@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import {inputStyle} from "./login";
 
 function Register() {
   const [name, setName] = useState("");
@@ -60,7 +59,7 @@ useEffect(() => {
     <div
       style={{
         maxWidth: "400px",
-      margin: "50px auto",
+      margin: window.innerWidth < 600 ? "20px auto" : "50px auto",
       padding: "20px",
       border: "1px solid #ddd",
       borderRadius: "10px",
