@@ -14,7 +14,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 // =========================
 router.post("/", async (req, res) => {
   try {
-    const { category, amount, date, description, recurring, recurrence, tags } = req.body;
+    const { category, amount, date, description, recurring, recurrence, tags, paymentMethod } = req.body;
 
     if (!category || !amount || !date) {
       return res.status(400).json({ message: "Category, amount, and date are required" });
@@ -35,6 +35,7 @@ router.post("/", async (req, res) => {
       recurrence: recurring ? recurrence : null,
       nextDueDate,
       tags: tags || [],
+      paymentMethod: paymentMethod || "card",
       user: req.user.id, // 🔹 USER SCOPED
     });
 
@@ -55,6 +56,7 @@ if (user && user.monthlyBudget) {
   const spent = expenses.reduce((sum, e) => sum + e.amount, 0);
   const budget = user.monthlyBudget;
   const percentage = (spent / budget) * 100;
+  
 
   console.log(`💰 Budget check: spent=${spent}, budget=${budget}, percentage=${percentage}%`);
 
@@ -128,7 +130,7 @@ router.delete("/:id", async (req, res) => {
 // =========================
 router.put("/:id", async (req, res) => {
   try {
-    const { category, amount, date, description, recurring, recurrence, tags } = req.body;
+    const { category, amount, date, description, recurring, recurrence, tags, paymentMethod } = req.body;
 
     if (!category || !amount || !date) {
       return res.status(400).json({ message: "Category, amount, and date are required" });
@@ -147,6 +149,7 @@ router.put("/:id", async (req, res) => {
         recurrence: recurring ? recurrence : null,
         nextDueDate,
         tags: tags || [],
+        paymentMethod: paymentMethod || "card",
       },
       { new: true }
     );

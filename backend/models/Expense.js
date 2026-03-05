@@ -13,6 +13,7 @@ const ExpenseSchema = new mongoose.Schema({
   },
   nextDueDate: { type: Date },
   tags: { type: [String], default: [] },
+paymentMethod: { type: String, enum: ["cash", "card", "bank transfer", "other"], default: "card" },
 });
 
 const Expense = mongoose.model("Expense", ExpenseSchema);

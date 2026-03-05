@@ -12,6 +12,7 @@ const Expenses = ({ theme, currency }) => {
   const [expenses, setExpenses] = useState([]);
   const [search, setSearch] = useState("");
   const [tags, setTags] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("card");
 // Attach token to requests
 const authHeader = () => {
   const token = localStorage.getItem("token"); // or sessionStorage if you stored it there
@@ -38,6 +39,8 @@ const authHeader = () => {
     description: "",
     recurring: "",
     recurrence: "",
+    tags: [],
+    paymentMethod: "card",
   });
 
   useEffect(() => {
@@ -107,6 +110,7 @@ const authHeader = () => {
   recurring,
   recurrence: recurring ? recurrence : null,
   tags: tags ? tags.split(",").map(t => t.trim()) : [],
+  paymentMethod,
 }, authHeader());
       setExpenses([...expenses, res.data]);
       setCategory("Food");
@@ -116,6 +120,7 @@ setDescription("");
 setRecurring(false);
 setRecurrence("");
 setTags("");
+setPaymentMethod("card");
     } catch (err) {
       console.error("Error adding expense:", err);
     }
@@ -144,6 +149,7 @@ setTags("");
     ? expense.recurrence || "monthly" // ✅ Always default to "monthly"
     : null,
     tags: expense.tags || [],
+    paymentMethod: expense.paymentMethod || "card",
 });
 
     setIsModalOpen(true);
@@ -325,6 +331,18 @@ setTags("");
     onChange={(e) => setTags(e.target.value)}
   />
 </div>
+<div className="col-md-2">
+  <select
+    className={`form-select ${theme === "dark" ? "bg-secondary text-light border-0" : ""}`}
+    value={paymentMethod}
+    onChange={(e) => setPaymentMethod(e.target.value)}
+  >
+    <option value="card">💳 Card</option>
+    <option value="cash">💵 Cash</option>
+    <option value="bank transfer">🏦 Bank Transfer</option>
+    <option value="other">🔄 Other</option>
+  </select>
+</div>
         <div className="col-md-1">
           <div className="col-md-3 d-flex align-items-center">
   <input
@@ -380,6 +398,7 @@ setTags("");
               <th>Description</th>
               <th>Recurring</th>
               <th>Tags</th>
+              <th>Payment</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -440,6 +459,13 @@ setTags("");
       #{tag}
     </span>
   )) : "—"}
+</td>
+<td>
+  {expense.paymentMethod === "cash" && "💵 Cash"}
+  {expense.paymentMethod === "card" && "💳 Card"}
+  {expense.paymentMethod === "bank transfer" && "🏦 Bank Transfer"}
+  {expense.paymentMethod === "other" && "🔄 Other"}
+  {!expense.paymentMethod && "💳 Card"}
 </td>
                   <td>
                     <button
@@ -541,7 +567,6 @@ setTags("");
                 />
               </div>
               <div className="mb-2">
-  <label>
     <div className="mb-2">
   <input
     type="text"
@@ -550,6 +575,18 @@ setTags("");
     value={editData.tags?.join(", ") || ""}
     onChange={(e) => setEditData({ ...editData, tags: e.target.value.split(",").map(t => t.trim()) })}
   />
+</div>
+<div className="mb-2">
+  <select
+  className={`form-select ${theme === "dark" ? "bg-secondary text-light border-0" : ""}`}
+  value={editData.paymentMethod || "card"}
+  onChange={(e) => setEditData({ ...editData, paymentMethod: e.target.value })}
+>
+    <option value="card">💳 Card</option>
+    <option value="cash">💵 Cash</option>
+    <option value="bank transfer">🏦 Bank Transfer</option>
+    <option value="other">🔄 Other</option>
+  </select>
 </div>
     <input
       type="checkbox"
@@ -563,7 +600,6 @@ setTags("");
       }
     />{" "}
     Recurring
-  </label>
 
   {editData.recurring && (
     <select
