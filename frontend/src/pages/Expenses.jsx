@@ -223,7 +223,7 @@ setPaymentMethod("card");
     padding: "20px",
   }}
 >
-      <h1 className="mb-4 text-center">Expense Tracker</h1>
+      <h1 className="mb-4 text-center">Expenses Tab</h1>
 
       {/* Budget */}
       <div
