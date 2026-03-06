@@ -106,6 +106,33 @@ export default function Dashboard({ theme, user, currency }) {
     0
   );
 
+// Add these calculations after highestExpense:
+
+// Last month expenses
+const lastMonth = new Date().getMonth() - 1;
+const lastMonthExpenses = expenses
+  .filter((e) => new Date(e.date).getMonth() === lastMonth)
+  .reduce((acc, e) => acc + e.amount, 0);
+
+// Month over month change
+const monthChange = lastMonthExpenses > 0
+  ? ((monthlyExpenses - lastMonthExpenses) / lastMonthExpenses) * 100
+  : 0;
+
+// Average daily spending this month
+const daysInMonth = new Date().getDate();
+const avgDailySpending = monthlyExpenses / daysInMonth;
+
+// Top category this month
+const currentMonth = new Date().getMonth();
+const categoryTotals = {};
+expenses
+  .filter((e) => new Date(e.date).getMonth() === currentMonth)
+  .forEach((e) => {
+    categoryTotals[e.category] = (categoryTotals[e.category] || 0) + e.amount;
+  });
+const topCategory = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])[0];
+
   // Budget progress
   const budgetProgress = budget ? Math.min((monthlyExpenses / budget) * 100, 100) : 0;
   let budgetStatus = "";
@@ -197,6 +224,37 @@ export default function Dashboard({ theme, user, currency }) {
           <p>{formatCurrency(highestExpense, currency)}</p>
         </div>
       </div>
+
+      {/* Stats Cards */}
+<div style={{ display: "flex", gap: "20px", marginBottom: "20px", flexWrap: "wrap" }}>
+  <div style={{ ...cardStyle, borderLeft: `4px solid ${monthChange >= 0 ? "#e74c3c" : "#2ecc71"}` }}>
+    <h4>vs Last Month</h4>
+    <p style={{ color: monthChange >= 0 ? "#e74c3c" : "#2ecc71", fontWeight: "bold", fontSize: "20px" }}>
+      {monthChange >= 0 ? "📈" : "📉"} {Math.abs(monthChange).toFixed(1)}%
+    </p>
+    <small style={{ opacity: 0.7 }}>
+      Last month: {formatCurrency(lastMonthExpenses, currency)}
+    </small>
+  </div>
+
+  <div style={{ ...cardStyle, borderLeft: "4px solid #3498db" }}>
+    <h4>Daily Average</h4>
+    <p style={{ fontWeight: "bold", fontSize: "20px" }}>
+      {formatCurrency(avgDailySpending, currency)}
+    </p>
+    <small style={{ opacity: 0.7 }}>per day this month</small>
+  </div>
+
+  <div style={{ ...cardStyle, borderLeft: `4px solid ${categoryColors[topCategory?.[0]] || "#95a5a6"}` }}>
+    <h4>Top Category</h4>
+    <p style={{ fontWeight: "bold", fontSize: "20px" }}>
+      {topCategory ? topCategory[0] : "—"}
+    </p>
+    <small style={{ opacity: 0.7 }}>
+      {topCategory ? formatCurrency(topCategory[1], currency) : "No data"}
+    </small>
+  </div>
+</div>
 
       {/* Budget Section */}
       <div style={{ ...cardStyle, marginBottom: "20px", textAlign: "left" }}>
