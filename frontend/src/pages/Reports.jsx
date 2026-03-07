@@ -300,7 +300,7 @@ export default function Reports({ theme = "dark", currency: userCurrency = "USD"
 
   const fetchExpenses = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/expenses", authHeader());
+      const res = await axios.get("https://expense-tracker-production-854d.up.railway.app/api/expenses", authHeader());
       const data = Array.isArray(res.data) ? res.data : [];
       setExpenses(data);
       const uniqueCategories = [...new Set(data.map((e) => e.category).filter(Boolean))];
@@ -399,7 +399,7 @@ export default function Reports({ theme = "dark", currency: userCurrency = "USD"
   const handleExport = async () => {
     try {
       const response = await axios.get(
-  "http://localhost:5000/api/expenses/export/csv",
+  "https://expense-tracker-production-854d.up.railway.app/api/expenses/export/csv",
   { responseType: "blob", ...authHeader() }
 );
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -454,7 +454,7 @@ export default function Reports({ theme = "dark", currency: userCurrency = "USD"
   const formData = new FormData();
   formData.append("file", file);
   try {
-    await axios.post("http://localhost:5000/api/expenses/import/csv", formData, {
+    await axios.post("https://expense-tracker-production-854d.up.railway.app/api/expenses/import/csv", formData, {
       ...authHeader(),
       headers: { 
         ...authHeader().headers,
@@ -554,7 +554,7 @@ const handleShareReport = async () => {
 
     const pdfBase64 = doc.output("datauristring").split(",")[1];
 
-    await axios.post("http://localhost:5000/api/expenses/share-report", {
+    await axios.post("https://expense-tracker-production-854d.up.railway.app/api/expenses/share-report", {
       email: shareEmail,
       pdfBase64,
       filename: "expenses_report.pdf",

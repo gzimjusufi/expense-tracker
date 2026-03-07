@@ -16,7 +16,7 @@ function VerifyEmail() {
     }
 
     axios
-      .get(`http://localhost:5000/api/auth/verify-email?token=${token}`)
+      .get(`https://expense-tracker-production-854d.up.railway.app/api/auth/verify-email?token=${token}`)
       .then(() => setStatus("success"))
       .catch(() => setStatus("error"));
   }, []);

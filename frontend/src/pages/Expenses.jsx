@@ -46,7 +46,7 @@ const authHeader = () => {
 // Fetch expenses
 const fetchExpenses = async () => {
   try {
-    const res = await axios.get("http://localhost:5000/api/expenses", authHeader());
+    const res = await axios.get("https://expense-tracker-production-854d.up.railway.app/api/expenses", authHeader());
     setExpenses(res.data);
   } catch (err) {
     console.error("Error fetching expenses:", err);
@@ -56,7 +56,7 @@ const fetchExpenses = async () => {
 // Fetch budget
 const fetchBudget = async () => {
   try {
-    const res = await axios.get("http://localhost:5000/api/budget", authHeader());
+    const res = await axios.get("https://expense-tracker-production-854d.up.railway.app/api/budget", authHeader());
     const budget = res.data.monthlyBudget || 1000;
     setMonthlyBudget(budget);
     setBudgetInput(budget);
@@ -74,7 +74,7 @@ useEffect(() => {
   // Save updated budget
   const saveBudget = async () => {
     try {
-      await axios.put("http://localhost:5000/api/budget", {
+      await axios.put("https://expense-tracker-production-854d.up.railway.app/api/budget", {
   monthlyBudget: Number(budgetInput),
 }, authHeader());
 
@@ -103,7 +103,7 @@ useEffect(() => {
 
     try {
       console.log("Tags being sent:", tags);
-      const res = await axios.post("http://localhost:5000/api/expenses", {
+      const res = await axios.post("https://expense-tracker-production-854d.up.railway.app/api/expenses", {
   category,
   amount,
   date,
@@ -130,7 +130,7 @@ setPaymentMethod("card");
   // Delete expense
   const deleteExpense = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/expenses/${id}`, authHeader());
+      await axios.delete(`https://expense-tracker-production-854d.up.railway.app/api/expenses/${id}`, authHeader());
       setExpenses(expenses.filter((exp) => exp._id !== id));
     } catch (err) {
       console.error("Error deleting expense:", err);
@@ -160,7 +160,7 @@ setPaymentMethod("card");
   const saveEdit = async () => {
     try {
       const res = await axios.put(
-  `http://localhost:5000/api/expenses/${editingExpense._id}`,
+  `https://expense-tracker-production-854d.up.railway.app/api/expenses/${editingExpense._id}`,
   editData,
   authHeader()
 );

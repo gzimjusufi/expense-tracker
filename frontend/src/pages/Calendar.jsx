@@ -15,7 +15,7 @@ export default function CalendarPage({ theme, currency = "USD" }) {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    axios.get("http://localhost:5000/api/expenses", {
+    axios.get("https://expense-tracker-production-854d.up.railway.app/api/expenses", {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => setExpenses(res.data))
       .catch(err => console.error(err));

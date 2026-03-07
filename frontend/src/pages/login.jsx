@@ -27,7 +27,7 @@ function Login({ setUser, setTheme, setCurrency }) {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      const res = await fetch("https://expense-tracker-production-854d.up.railway.app/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -129,7 +129,7 @@ function Login({ setUser, setTheme, setCurrency }) {
       <div style={{ marginTop: "15px", textAlign: "center" }}>
   <hr style={{ marginBottom: "15px" }} />
   
-    <a href="http://localhost:5000/api/auth/google"
+    <a href="https://expense-tracker-production-854d.up.railway.app/api/auth/google"
     style={{
       display: "inline-block",
       width: "100%",

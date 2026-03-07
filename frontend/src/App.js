@@ -51,7 +51,7 @@ function App() {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    fetch("http://localhost:5000/api/auth/verify", {
+    fetch("https://expense-tracker-production-854d.up.railway.app/api/auth/verify", {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())

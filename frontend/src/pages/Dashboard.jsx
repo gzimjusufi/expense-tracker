@@ -40,7 +40,7 @@ export default function Dashboard({ theme, user, currency }) {
     if (!isUserReady) return; // wait for user
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("http://localhost:5000/api/expenses", {
+      const res = await axios.get("https://expense-tracker-production-854d.up.railway.app/api/expenses", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setExpenses(res.data);
@@ -62,7 +62,7 @@ export default function Dashboard({ theme, user, currency }) {
     if (!isUserReady) return; // wait for user
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("http://localhost:5000/api/budget", {
+      const res = await axios.get("https://expense-tracker-production-854d.up.railway.app/api/budget", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setBudget(res.data.monthlyBudget);

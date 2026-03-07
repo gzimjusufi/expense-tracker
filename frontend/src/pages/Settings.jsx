@@ -51,7 +51,7 @@ const handleSaveProfile = async () => {
     if (profile.password) body.password = profile.password;
     if (profile.currency) body.currency = profile.currency;
 
-    const res = await fetch("http://localhost:5000/api/auth/update-profile", {
+    const res = await fetch("https://expense-tracker-production-854d.up.railway.app/api/auth/update-profile", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
