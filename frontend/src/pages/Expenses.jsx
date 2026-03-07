@@ -43,32 +43,33 @@ const authHeader = () => {
     paymentMethod: "card",
   });
 
-  useEffect(() => {
-    fetchExpenses();
-    fetchBudget();
-  }, []);
+// Fetch expenses
+const fetchExpenses = async () => {
+  try {
+    const res = await axios.get("http://localhost:5000/api/expenses", authHeader());
+    setExpenses(res.data);
+  } catch (err) {
+    console.error("Error fetching expenses:", err);
+  }
+};
 
-  // Fetch expenses
-  const fetchExpenses = async () => {
-    try {
-      const res = await axios.get("http://localhost:5000/api/expenses", authHeader());
-      setExpenses(res.data);
-    } catch (err) {
-      console.error("Error fetching expenses:", err);
-    }
-  };
+// Fetch budget
+const fetchBudget = async () => {
+  try {
+    const res = await axios.get("http://localhost:5000/api/budget", authHeader());
+    const budget = res.data.monthlyBudget || 1000;
+    setMonthlyBudget(budget);
+    setBudgetInput(budget);
+  } catch (err) {
+    console.error("Error fetching budget:", err);
+  }
+};
 
-  // Fetch budget
-  const fetchBudget = async () => {
-    try {
-      const res = await axios.get("http://localhost:5000/api/budget", authHeader());
-      const budget = res.data.monthlyBudget || 1000;
-      setMonthlyBudget(budget);
-      setBudgetInput(budget);
-    } catch (err) {
-      console.error("Error fetching budget:", err);
-    }
-  };
+useEffect(() => {
+  fetchExpenses();
+  fetchBudget();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
 
   // Save updated budget
   const saveBudget = async () => {
