@@ -10,7 +10,6 @@ export const CURRENCY_SYMBOLS = {
 };
 
 export const formatCurrency = (amount, currency = "USD") => {
-  const symbol = CURRENCY_SYMBOLS[currency] || currency;
   return new Intl.NumberFormat(undefined, {
     style: "currency",
     currency: currency,

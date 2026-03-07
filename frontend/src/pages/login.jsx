@@ -19,7 +19,7 @@ function Login({ setUser, setTheme, setCurrency }) {
       setTheme(storedTheme);
       navigate("/dashboard");
     }
-  }, [navigate, setUser]);
+  }, [navigate, setUser, setTheme]);
 
   const handleLogin = async (e) => {
     e.preventDefault();

@@ -80,7 +80,7 @@ export default function Dashboard({ theme, user, currency }) {
       fetchExpenses();
       fetchBudget();
     }
-  }, [isUserReady]);
+  }, [isUserReady]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Save budget in localStorage whenever updated
   useEffect(() => {
