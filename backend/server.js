@@ -250,7 +250,7 @@ app.get(
       );
 
       // ✅ Send email to user who just logged in via Google
-await sendExpenseReminder(
+sendExpenseReminder(
   req.user.email,
   "Login Notification",
   { 
@@ -259,7 +259,7 @@ await sendExpenseReminder(
     nextDueDate: new Date().toISOString(), 
     description: "You successfully logged into Expense Tracker via Google!" 
   }
-);
+).catch(err => console.error("Email error:", err));
 
       // Redirect to frontend with token
       // res.redirect(`http://localhost:3000/oauth-success?token=${token}&currency=${req.user.currency || "USD"}`);
