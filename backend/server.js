@@ -11,6 +11,7 @@ import passport from "passport";
 import { sendLoginNotification, sendExpenseReminder, sendVerificationEmail } from "./utils/mailer.js";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import "./cronJobs/recurringExpenses.js";
+import Anthropic from "@anthropic-ai/sdk";
 
 // Routes
 import expenseRoutes from "./routes/ExpenseRoutes.js";
@@ -292,6 +293,29 @@ app.put("/api/auth/update-profile", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error("❌ Update profile error:", err);
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.post("/api/chat", authMiddleware, async (req, res) => {
+  try {
+    const { messages, expenses, currency } = req.body;
+    
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    
+    const response = await client.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1000,
+      system: `You are a helpful expense tracking assistant. The user's expenses data is: ${JSON.stringify(expenses?.slice(0, 50))}. 
+      Currency: ${currency}. 
+      Help them understand their spending, give advice, and answer questions about their finances.
+      Keep responses concise and friendly.`,
+      messages,
+    });
+
+    res.json({ message: response.content[0].text });
+  } catch (err) {
+    console.error("Chat error:", err);
+    res.status(500).json({ message: "Failed to get response" });
   }
 });
 

@@ -16,6 +16,7 @@ import VerifyEmailRequest from "./pages/VerifyEmailRequest";
 import InstallButton from "./components/InstallButton";
 import CalendarPage from "./pages/Calendar";
 import Goals from "./pages/Goals";
+import Chatbot from "./components/Chatbot";
 
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem("user_logged_in");
@@ -93,6 +94,7 @@ function App() {
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
+        {user && <Chatbot theme={theme} currency={currency} />}
       </Layout>
     </Router>
   );
