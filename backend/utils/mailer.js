@@ -57,7 +57,14 @@ async function sendEmail(to, subject, html, attachments = []) {
     subject,
     html,
   };
-  if (attachments.length > 0) payload.attachments = attachments;
+  if (attachments.length > 0) {
+    payload.attachments = attachments.map(att => ({
+      filename: att.filename,
+      content: Buffer.isBuffer(att.content) 
+        ? att.content.toString("base64") 
+        : att.content,
+    }));
+  }
   const { error } = await resend.emails.send(payload);
   if (error) throw new Error(error.message);
 }
