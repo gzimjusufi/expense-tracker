@@ -262,7 +262,10 @@ await sendExpenseReminder(
 );
 
       // Redirect to frontend with token
-      res.redirect(`http://localhost:3000/oauth-success?token=${token}&currency=${req.user.currency || "USD"}`);
+      // res.redirect(`http://localhost:3000/oauth-success?token=${token}&currency=${req.user.currency || "USD"}`);
+    const clientURL = process.env.CLIENT_URL || "http://localhost:3000";
+res.redirect(`${clientURL}/oauth-success?token=${token}&currency=${req.user.currency || "USD"}`);
+
     } catch (err) {
       console.error("❌ Google login email error:", err);
       res.redirect("/login");
