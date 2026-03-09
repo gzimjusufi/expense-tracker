@@ -150,7 +150,6 @@ app.get("/api/auth/verify-email", async (req, res) => {
 
 app.post("/api/auth/register", async (req, res) => {
   const { name, email, password } = req.body;
-
   try {
     let existing = await User.findOne({ email });
 
@@ -174,7 +173,7 @@ app.post("/api/auth/register", async (req, res) => {
     await user.save();
 
     const verificationToken = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "1d" });
-    await sendVerificationEmail(user.email, verificationToken);
+    sendVerificationEmail(user.email, verificationToken).catch(err => console.error("Email error:", err));
 
     res.status(201).json({
       message: "Account created! Please check your email to verify your account.",
@@ -192,7 +191,6 @@ app.post("/api/auth/login", async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
-    // ADD THIS CHECK:
     if (!user.isVerified && !user.googleId) {
       return res.status(403).json({ message: "Please verify your email before logging in" });
     }
@@ -202,14 +200,13 @@ app.post("/api/auth/login", async (req, res) => {
 
     const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
 
-    // ✅ Send login email
-await sendLoginNotification(user.email, user.name || "");
-await sendExpenseReminder(user.email, "Login Notification", {
-  category: "Login Notification",
-  amount: 0,
-  nextDueDate: new Date().toISOString(),
-  description: "You successfully logged into Expense Tracker!",
-});
+    sendLoginNotification(user.email, user.name || "").catch(err => console.error("Email error:", err));
+    sendExpenseReminder(user.email, "Login Notification", {
+      category: "Login Notification",
+      amount: 0,
+      nextDueDate: new Date().toISOString(),
+      description: "You successfully logged into Expense Tracker!",
+    }).catch(err => console.error("Email error:", err));
 
     res.json({ token, user: { id: user._id, name: user.name, email: user.email, currency: user.currency || "USD" } });
   } catch (err) {
@@ -217,8 +214,6 @@ await sendExpenseReminder(user.email, "Login Notification", {
     res.status(500).json({ message: "Server error" });
   }
 });
-
-
 
 // Verify & get current user
 // app.get("/api/auth/verify", authMiddleware, async (req, res) => {
@@ -265,7 +260,6 @@ sendExpenseReminder(
       // res.redirect(`http://localhost:3000/oauth-success?token=${token}&currency=${req.user.currency || "USD"}`);
     const clientURL = process.env.CLIENT_URL || "http://localhost:3000";
 res.redirect(`${clientURL}/oauth-success?token=${token}&currency=${req.user.currency || "USD"}`);
-
     } catch (err) {
       console.error("❌ Google login email error:", err);
       res.redirect("/login");
