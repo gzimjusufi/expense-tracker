@@ -1,35 +1,9 @@
-import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 import { Resend } from "resend";
 
 dotenv.config();
 
-/* =========================
-   💌  MAILER CONFIGURATION
-========================= */
-
-// const transporter = nodemailer.createTransport({
-//   service: "gmail",
-//   port: 465,
-//   secure: true,
-//   auth: {
-//     user: process.env.EMAIL_USER,
-//     pass: process.env.EMAIL_PASS,
-//   },
-// });
-
 const resend = new Resend(process.env.RESEND_API_KEY);
-await resend.emails.send({
-  from: "Expense Tracker <onboarding@resend.dev>",
-  to,
-  subject,
-  html,
-});
-
-// transporter.verify((error, success) => {
-//   if (error) console.error("❌ Email server failed:", error);
-//   else console.log("✅ Email server is ready to send messages");
-// });
 
 /* =========================
    🧼  HELPER FUNCTIONS
@@ -73,21 +47,31 @@ function baseTemplate(title, contentHTML) {
 }
 
 /* =========================
+   📬  SEND EMAIL HELPER
+========================= */
+
+async function sendEmail(to, subject, html, attachments = []) {
+  const payload = {
+    from: "Expense Tracker <onboarding@resend.dev>",
+    to,
+    subject,
+    html,
+  };
+  if (attachments.length > 0) payload.attachments = attachments;
+  const { error } = await resend.emails.send(payload);
+  if (error) throw new Error(error.message);
+}
+
+/* =========================
    📬  SEND EXPENSE REMINDER
 ========================= */
 
 export async function sendExpenseReminder(to, subject, data) {
   try {
-    console.log("📩 sendExpenseReminder RAW ARGS:", { to, subject, data });
-
-    // Auto-fix argument order if needed
     if (typeof subject === "object" && data === undefined) {
-      console.log("⚙️ Fixing argument order automatically...");
       data = subject;
       subject = (subject && subject.category) || "Expense Tracker Update";
     }
-
-    console.log("✅ Normalized args:", { to, subject, data });
 
     const subjectLine =
       typeof subject === "string"
@@ -97,9 +81,7 @@ export async function sendExpenseReminder(to, subject, data) {
     let messageBody = "";
 
     if (data && typeof data === "object") {
-      console.log("🧩 Building message from object data...");
       const { category, description, amount, nextDueDate } = data;
-
       messageBody = `
         <div style="line-height:1.6;font-size:15px;">
           <p><strong style="color:#4CAF50;">Category:</strong> ${cleanText(category) || "N/A"}</p>
@@ -111,23 +93,14 @@ export async function sendExpenseReminder(to, subject, data) {
         </div>
       `;
     } else if (typeof data === "string") {
-      console.log("🧩 Building message from string data...");
       messageBody = `<p style="font-size:15px;">${data}</p>`;
     } else {
-      console.log("🧩 Using fallback message — data missing or invalid.");
       messageBody = `<p style="font-size:15px;">You have a new update from Expense Tracker.</p>`;
     }
 
     const html = baseTemplate(subjectLine, messageBody);
-
-    const info = await transporter.sendMail({
-      from: `"Expense Tracker" <${process.env.EMAIL_USER}>`,
-      to,
-      subject: subjectLine,
-      html,
-    });
-
-    console.log(`📧 Email sent successfully to ${to}: ${info.messageId}`);
+    await sendEmail(to, subjectLine, html);
+    console.log(`📧 Reminder email sent to ${to}`);
   } catch (err) {
     console.error("❌ Error sending reminder:", err);
   }
@@ -140,23 +113,11 @@ export async function sendExpenseReminder(to, subject, data) {
 export async function sendWelcomeEmail(to, name) {
   try {
     const content = `
-      <p style="font-size:15px;">
-        🎉 Welcome to <strong>Expense Tracker</strong>, ${cleanText(name)}!
-      </p>
-      <p style="font-size:15px;">
-        We're thrilled to have you join. Track your expenses and stay financially smart 💰.
-      </p>
+      <p style="font-size:15px;">🎉 Welcome to <strong>Expense Tracker</strong>, ${cleanText(name)}!</p>
+      <p style="font-size:15px;">We're thrilled to have you join. Track your expenses and stay financially smart 💰.</p>
     `;
-
     const html = baseTemplate("Welcome to Expense Tracker!", content);
-
-    await transporter.sendMail({
-      from: `"Expense Tracker" <${process.env.EMAIL_USER}>`,
-      to,
-      subject: "👋 Welcome to Expense Tracker!",
-      html,
-    });
-
+    await sendEmail(to, "👋 Welcome to Expense Tracker!", html);
     console.log(`✅ Welcome email sent to ${to}`);
   } catch (err) {
     console.error("❌ Error sending welcome email:", err);
@@ -170,23 +131,11 @@ export async function sendWelcomeEmail(to, name) {
 export async function sendLoginNotification(to, name) {
   try {
     const content = `
-      <p style="font-size:15px;">
-        👋 Hi ${cleanText(name)}, you just logged into your <strong>Expense Tracker</strong> account.
-      </p>
-      <p style="font-size:15px;">
-        If this was you — awesome! If not, please secure your account immediately.
-      </p>
+      <p style="font-size:15px;">👋 Hi ${cleanText(name)}, you just logged into your <strong>Expense Tracker</strong> account.</p>
+      <p style="font-size:15px;">If this was you — awesome! If not, please secure your account immediately.</p>
     `;
-
     const html = baseTemplate("New Login Detected", content);
-
-    await transporter.sendMail({
-      from: `"Expense Tracker" <${process.env.EMAIL_USER}>`,
-      to,
-      subject: "🔔 New Login Detected",
-      html,
-    });
-
+    await sendEmail(to, "🔔 New Login Detected", html);
     console.log(`✅ Login notification sent to ${to}`);
   } catch (err) {
     console.error("❌ Error sending login email:", err);
@@ -200,23 +149,17 @@ export async function sendLoginNotification(to, name) {
 export async function sendMonthlySummary(to, name, summaryData) {
   try {
     const { total = 0, month, categories = [] } = summaryData || {};
-
     const categoryRows = categories.length
-      ? categories
-          .map(
-            (c) => `
+      ? categories.map((c) => `
           <tr>
             <td style="padding:8px 12px;">${cleanText(c.name)}</td>
             <td style="padding:8px 12px;text-align:right;">$${Number(c.amount).toFixed(2)}</td>
-          </tr>`
-          )
-          .join("")
+          </tr>`).join("")
       : `<tr><td colspan="2" style="padding:10px;text-align:center;">No expenses recorded this month.</td></tr>`;
 
     const content = `
       <p style="font-size:15px;">Hi ${cleanText(name)},</p>
-      <p style="font-size:15px;">Here’s a quick summary of your expenses for <strong>${month}</strong>:</p>
-
+      <p style="font-size:15px;">Here's a quick summary of your expenses for <strong>${month}</strong>:</p>
       <table style="width:100%;border-collapse:collapse;margin-top:15px;">
         <thead>
           <tr style="background-color:#f0f0f0;">
@@ -232,26 +175,19 @@ export async function sendMonthlySummary(to, name, summaryData) {
           </tr>
         </tfoot>
       </table>
-
-      <p style="margin-top:20px;font-size:15px;">
-        Great job keeping track of your finances this month 💪.
-      </p>
+      <p style="margin-top:20px;font-size:15px;">Great job keeping track of your finances this month 💪.</p>
     `;
-
     const html = baseTemplate(`📊 ${month} Expense Summary`, content);
-
-    const info = await transporter.sendMail({
-      from: `"Expense Tracker" <${process.env.EMAIL_USER}>`,
-      to,
-      subject: `📊 ${month} Expense Summary`,
-      html,
-    });
-
-    console.log(`✅ Monthly summary email sent to ${to}: ${info.messageId}`);
+    await sendEmail(to, `📊 ${month} Expense Summary`, html);
+    console.log(`✅ Monthly summary email sent to ${to}`);
   } catch (err) {
     console.error("❌ Error sending monthly summary:", err);
   }
 }
+
+/* =========================
+   ⚠️  BUDGET WARNING
+========================= */
 
 export async function sendBudgetWarning(to, name, spent, budget) {
   try {
@@ -267,17 +203,16 @@ export async function sendBudgetWarning(to, name, spent, budget) {
       <p style="font-size:15px;">Consider slowing down your spending for the rest of the month!</p>
     `;
     const html = baseTemplate("⚠️ Budget Warning", content);
-    await transporter.sendMail({
-      from: `"Expense Tracker" <${process.env.EMAIL_USER}>`,
-      to,
-      subject: "⚠️ You've used 80% of your monthly budget",
-      html,
-    });
+    await sendEmail(to, "⚠️ You've used 80% of your monthly budget", html);
     console.log(`✅ Budget warning sent to ${to}`);
   } catch (err) {
     console.error("❌ Error sending budget warning:", err);
   }
 }
+
+/* =========================
+   🚨  BUDGET EXCEEDED
+========================= */
 
 export async function sendBudgetExceeded(to, name, spent, budget) {
   try {
@@ -293,17 +228,16 @@ export async function sendBudgetExceeded(to, name, spent, budget) {
       <p style="font-size:15px;">Please review your expenses and adjust your spending.</p>
     `;
     const html = baseTemplate("🚨 Budget Exceeded", content);
-    await transporter.sendMail({
-      from: `"Expense Tracker" <${process.env.EMAIL_USER}>`,
-      to,
-      subject: "🚨 You've exceeded your monthly budget!",
-      html,
-    });
+    await sendEmail(to, "🚨 You've exceeded your monthly budget!", html);
     console.log(`✅ Budget exceeded email sent to ${to}`);
   } catch (err) {
     console.error("❌ Error sending budget exceeded email:", err);
   }
 }
+
+/* =========================
+   📊  WEEKLY GOALS SUMMARY
+========================= */
 
 export async function sendWeeklyGoalsSummary(to, name, goals) {
   try {
@@ -335,19 +269,17 @@ export async function sendWeeklyGoalsSummary(to, name, goals) {
       </table>
       <p style="margin-top:20px;font-size:15px;">Keep saving! 💪</p>
     `;
-
     const html = baseTemplate("📊 Weekly Goals Summary", content);
-    await transporter.sendMail({
-      from: `"Expense Tracker" <${process.env.EMAIL_USER}>`,
-      to,
-      subject: "📊 Your Weekly Savings Goals Summary",
-      html,
-    });
+    await sendEmail(to, "📊 Your Weekly Savings Goals Summary", html);
     console.log(`✅ Weekly goals summary sent to ${to}`);
   } catch (err) {
     console.error("❌ Error sending weekly goals summary:", err);
   }
 }
+
+/* =========================
+   🎉  GOAL REACHED
+========================= */
 
 export async function sendGoalReached(to, name, goalName, amount) {
   try {
@@ -361,17 +293,16 @@ export async function sendGoalReached(to, name, goalName, amount) {
       <p style="font-size:15px;">Keep up the great work! 💪</p>
     `;
     const html = baseTemplate("🎉 Goal Reached!", content);
-    await transporter.sendMail({
-      from: `"Expense Tracker" <${process.env.EMAIL_USER}>`,
-      to,
-      subject: `🎉 You've reached your savings goal: ${goalName}`,
-      html,
-    });
+    await sendEmail(to, `🎉 You've reached your savings goal: ${goalName}`, html);
     console.log(`✅ Goal reached email sent to ${to}`);
   } catch (err) {
     console.error("❌ Error sending goal reached email:", err);
   }
 }
+
+/* =========================
+   ⏰  GOAL DEADLINE REMINDER
+========================= */
 
 export async function sendGoalDeadlineReminder(to, name, goalName, remaining, deadline) {
   try {
@@ -386,54 +317,51 @@ export async function sendGoalDeadlineReminder(to, name, goalName, remaining, de
       <p style="font-size:15px;">Keep saving to reach your goal in time! 💰</p>
     `;
     const html = baseTemplate("⏰ Goal Deadline Approaching", content);
-    await transporter.sendMail({
-      from: `"Expense Tracker" <${process.env.EMAIL_USER}>`,
-      to,
-      subject: `⏰ Deadline approaching for your goal: ${goalName}`,
-      html,
-    });
+    await sendEmail(to, `⏰ Deadline approaching for your goal: ${goalName}`, html);
     console.log(`✅ Goal deadline reminder sent to ${to}`);
   } catch (err) {
     console.error("❌ Error sending goal deadline reminder:", err);
   }
 }
 
-export const sendVerificationEmail = async (email, token) => {
-  const url = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
+/* =========================
+   ✅  VERIFICATION EMAIL
+========================= */
 
-  await transporter.sendMail({
-    from: `"Expense Tracker" <${process.env.EMAIL_USER}>`,
-    to: email,
-    subject: "Verify your email",
-    html: `
+export const sendVerificationEmail = async (email, token) => {
+  try {
+    const url = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
+    const html = `
       <h2>Welcome to Expense Tracker!</h2>
       <p>Thanks for registering. To activate your account, please click the link below:</p>
       <a href="${url}" style="padding:10px 15px; background:#2ecc71; color:white; text-decoration:none; border-radius:5px;">
         Verify Email
       </a>
       <p>If you didn't register, you can ignore this email.</p>
-    `,
-  });
+    `;
+    await sendEmail(email, "Verify your email", html);
+    console.log(`✅ Verification email sent to ${email}`);
+  } catch (err) {
+    console.error("❌ Error sending verification email:", err);
+  }
 };
+
+/* =========================
+   📎  REPORT EMAIL
+========================= */
 
 export async function sendReportEmail(to, pdfBuffer, filename) {
   try {
-    await transporter.sendMail({
-      from: `"Expense Tracker" <${process.env.EMAIL_USER}>`,
-      to,
-      subject: "📊 Your Expense Report",
-      html: baseTemplate("Your Expense Report", `
-        <p style="font-size:15px;">Please find your expense report attached.</p>
-        <p style="font-size:15px;">Generated by Expense Tracker 💰</p>
-      `),
-      attachments: [
-        {
-          filename: filename || "expenses_report.pdf",
-          content: pdfBuffer,
-          contentType: "application/pdf",
-        }
-      ]
-    });
+    const html = baseTemplate("Your Expense Report", `
+      <p style="font-size:15px;">Please find your expense report attached.</p>
+      <p style="font-size:15px;">Generated by Expense Tracker 💰</p>
+    `);
+    await sendEmail(to, "📊 Your Expense Report", html, [
+      {
+        filename: filename || "expenses_report.pdf",
+        content: pdfBuffer,
+      }
+    ]);
     console.log(`✅ Report email sent to ${to}`);
   } catch (err) {
     console.error("❌ Error sending report email:", err);
