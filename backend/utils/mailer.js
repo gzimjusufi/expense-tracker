@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+import { Resend } from "resend";
 
 dotenv.config();
 
@@ -8,7 +9,7 @@ dotenv.config();
 ========================= */
 
 // const transporter = nodemailer.createTransport({
-//   host: "smtp.gmail.com",
+//   service: "gmail",
 //   port: 465,
 //   secure: true,
 //   auth: {
@@ -17,20 +18,18 @@ dotenv.config();
 //   },
 // });
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
+const resend = new Resend(process.env.RESEND_API_KEY);
+await resend.emails.send({
+  from: "Expense Tracker <onboarding@resend.dev>",
+  to,
+  subject,
+  html,
 });
 
-transporter.verify((error, success) => {
-  if (error) console.error("❌ Email server failed:", error);
-  else console.log("✅ Email server is ready to send messages");
-});
+// transporter.verify((error, success) => {
+//   if (error) console.error("❌ Email server failed:", error);
+//   else console.log("✅ Email server is ready to send messages");
+// });
 
 /* =========================
    🧼  HELPER FUNCTIONS
