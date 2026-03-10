@@ -50,6 +50,7 @@ const handleSaveProfile = async () => {
     const body = { name: profile.name };
     if (profile.password) body.password = profile.password;
     if (profile.currency) body.currency = profile.currency;
+    if (profile.avatar) body.avatar = profile.avatar;
 
     const res = await fetch("https://expense-tracker-production-854d.up.railway.app/api/auth/update-profile", {
       method: "PUT",

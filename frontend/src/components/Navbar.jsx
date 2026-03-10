@@ -15,18 +15,17 @@ const Navbar = ({ theme, user, setUser }) => {
 
   // Load per-user profile
   useEffect(() => {
-    if (user?.email) {
-      const savedProfile = localStorage.getItem(`profile_${user.email}`);
-      if (savedProfile) {
-        const profile = JSON.parse(savedProfile);
-        setProfilePic(profile.avatar || null);
-        setFullName(profile.name || "");
-      }
+  if (user?.email) {
+    const savedProfile = localStorage.getItem(`profile_${user.email}`);
+    if (savedProfile) {
+      const profile = JSON.parse(savedProfile);
+      setProfilePic(profile.avatar || user?.avatar || null);
+      setFullName(profile.name || "");
     } else {
-      setProfilePic(null);
-      setFullName("");
+      setProfilePic(user?.avatar || null);
     }
-  }, [user]);
+  }
+}, [user]);
 
 const handleLogout = () => {
   const currentTheme = localStorage.getItem("theme"); // preserve theme

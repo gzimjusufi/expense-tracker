@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema({
   isVerified: { type: Boolean, default: false },
   monthlyBudget: { type: Number, default: 1000 },
   currency: { type: String, default: "USD" },
+  avatar: { type: String, default: "" },
 });
 
 const User = mongoose.model("User", userSchema);

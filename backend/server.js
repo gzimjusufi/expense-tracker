@@ -19,6 +19,7 @@ import budgetRoutes from "./routes/budget.js";
 import goalRoutes from "./routes/goals.js";
 
 import User from "./models/user.js"; // User model
+import { addNamedJavaScript } from "pdfkit";
 
 dotenv.config();
 
@@ -272,7 +273,7 @@ app.get("/api/auth/verify", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });
-    res.json({ user: { id: user._id, name: user.name, email: user.email, currency: user.currency || "USD" } });
+    res.json({ user: { id: user._id, name: user.name, email: user.email, currency: user.currency || "USD", avatar: user.avatar || "" } });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
@@ -287,6 +288,7 @@ app.put("/api/auth/update-profile", authMiddleware, async (req, res) => {
     if (name) user.name = name;
     if (password) user.password = await bcrypt.hash(password, 10);
     if (currency) user.currency = currency;
+    if (req.body.avatar !== undefined) user.avatar = req.body.avatar;
 
     await user.save();
     res.json({ message: "Profile updated successfully" });
