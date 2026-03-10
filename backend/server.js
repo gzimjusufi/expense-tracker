@@ -19,7 +19,6 @@ import budgetRoutes from "./routes/budget.js";
 import goalRoutes from "./routes/goals.js";
 
 import User from "./models/user.js"; // User model
-import { addNamedJavaScript } from "pdfkit";
 
 dotenv.config();
 
