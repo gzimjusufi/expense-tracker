@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const Settings = ({ theme, setTheme, user, setCurrency }) => {
+const Settings = ({ theme, setTheme, user, setUser, setCurrency }) => {
   const [profile, setProfile] = useState({
     name: "",
     password: "",
@@ -25,17 +25,6 @@ useEffect(() => {
 const handleSaveProfile = async () => {
   if (!user?.email) return;
 
-  const existingProfile = JSON.parse(localStorage.getItem(`profile_${user.email}`)) || {};
-
-  const updatedProfile = {
-    name: profile.name,
-    avatar: profile.avatar,
-    password: profile.password || existingProfile.password || "",
-    currency: profile.currency || "USD",
-  };
-
-  localStorage.setItem(`profile_${user.email}`, JSON.stringify(updatedProfile));
-
   try {
     const token = localStorage.getItem("token");
     const body = { name: profile.name };
@@ -59,12 +48,16 @@ const handleSaveProfile = async () => {
     }
 
     const stored = JSON.parse(localStorage.getItem("user_logged_in")) || {};
-localStorage.setItem("user_logged_in", JSON.stringify({ 
-  ...stored, 
-  currency: profile.currency || stored.currency,
-  avatar: profile.avatar || stored.avatar,
-}));
-if (profile.currency) setCurrency(profile.currency);
+    const updated = {
+      ...stored,
+      name: profile.name || stored.name,
+      currency: profile.currency || stored.currency,
+      avatar: profile.avatar || stored.avatar,
+    };
+    localStorage.setItem("user_logged_in", JSON.stringify(updated));
+    localStorage.setItem(`profile_${user.email}`, JSON.stringify(updated));
+    setUser(updated);
+    if (profile.currency) setCurrency(profile.currency);
 
     alert("Profile updated successfully!");
   } catch (err) {
