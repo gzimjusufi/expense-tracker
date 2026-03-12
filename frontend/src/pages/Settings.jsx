@@ -17,7 +17,7 @@ useEffect(() => {
       setProfile({
         name: data.name || user?.name || user?.username || "",
         password: "",
-        avatar: data.avatar || null,
+        avatar: data.avatar || user?.avatar || null,
         currency: data.currency || savedProfile?.currency || "USD",
       });
     } else {
@@ -67,11 +67,13 @@ const handleSaveProfile = async () => {
       return;
     }
 
-    if (profile.currency) {
-      setCurrency(profile.currency);
-      const stored = JSON.parse(localStorage.getItem("user_logged_in")) || {};
-      localStorage.setItem("user_logged_in", JSON.stringify({ ...stored, currency: profile.currency }));
-    }
+    const stored = JSON.parse(localStorage.getItem("user_logged_in")) || {};
+localStorage.setItem("user_logged_in", JSON.stringify({ 
+  ...stored, 
+  currency: profile.currency || stored.currency,
+  avatar: profile.avatar || stored.avatar,
+}));
+if (profile.currency) setCurrency(profile.currency);
 
     alert("Profile updated successfully!");
   } catch (err) {
