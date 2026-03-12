@@ -12,22 +12,13 @@ const Settings = ({ theme, setTheme, user, setCurrency }) => {
 useEffect(() => {
   if (user?.email) {
     const savedProfile = localStorage.getItem(`profile_${user.email}`);
-    if (savedProfile) {
-      const data = JSON.parse(savedProfile);
-      setProfile({
-        name: data.name || user?.name || user?.username || "",
-        password: "",
-        avatar: data.avatar || user?.avatar || null,
-        currency: data.currency || savedProfile?.currency || "USD",
-      });
-    } else {
-      // No saved profile, use name from login
-      setProfile({
-        name: user?.name || user?.username || "",
-        password: "",
-        avatar: null,
-      });
-    }
+    const data = savedProfile ? JSON.parse(savedProfile) : {};
+    setProfile({
+      name: data.name || user?.name || user?.username || "",
+      password: "",
+      avatar: user?.avatar || data.avatar || null,
+      currency: data.currency || user?.currency || "USD",
+    });
   }
 }, [user]);
 
