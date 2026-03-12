@@ -53,23 +53,24 @@ function App() {
     if (!token) return;
 
     fetch("https://expense-tracker-production-854d.up.railway.app/api/auth/verify", {
-      headers: { Authorization: `Bearer ${token}` }
-    })
+  headers: { Authorization: `Bearer ${token}` }
+})
+.then(res => res.json())
 .then(data => {
   if (data.user) {
     if (data.user.currency) setCurrency(data.user.currency);
     const stored = JSON.parse(localStorage.getItem("user_logged_in")) || {};
-    localStorage.setItem("user_logged_in", JSON.stringify({ 
+    const updated = { 
       ...stored, 
       currency: data.user.currency || stored.currency,
       avatar: data.user.avatar || stored.avatar || "",
       name: data.user.name || stored.name,
-    }));
+    };
     localStorage.setItem("user_logged_in", JSON.stringify(updated));
     setUser(updated);
   }
 })
-      .catch(() => {});
+.catch(() => {});
   }, []);
   useEffect(() => {
   localStorage.setItem("theme", theme);
