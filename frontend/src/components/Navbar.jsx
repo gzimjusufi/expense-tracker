@@ -14,16 +14,12 @@ const Navbar = ({ theme, user, setUser }) => {
       : { backgroundColor: "#fff", color: "#000" };
 
   // Load per-user profile
-  useEffect(() => {
+useEffect(() => {
   if (user?.email) {
     const savedProfile = localStorage.getItem(`profile_${user.email}`);
-    if (savedProfile) {
-      const profile = JSON.parse(savedProfile);
-      setProfilePic(profile.avatar || user?.avatar || null);
-      setFullName(profile.name || "");
-    } else {
-      setProfilePic(user?.avatar || null);
-    }
+    const profile = savedProfile ? JSON.parse(savedProfile) : {};
+    setProfilePic(user?.avatar || profile.avatar || null);
+    setFullName(user?.name || profile.name || "");
   }
 }, [user]);
 
