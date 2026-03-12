@@ -8,10 +8,11 @@ const Settings = ({ theme, setTheme, user, setUser, setCurrency }) => {
     currency: "USD",
   });
 
-  // Fetch latest from MongoDB on mount
+  // Fetch latest profile from MongoDB on mount
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
+
     fetch("https://expense-tracker-production-854d.up.railway.app/api/auth/verify", {
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -38,93 +39,63 @@ const Settings = ({ theme, setTheme, user, setUser, setCurrency }) => {
     .catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Fetch latest from MongoDB on mount
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-    fetch("https://expense-tracker-production-854d.up.railway.app/api/auth/verify", {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.user) {
-        const stored = JSON.parse(localStorage.getItem("user_logged_in")) || {};
-        const updated = {
-          ...stored,
-          name: data.user.name || stored.name,
-          currency: data.user.currency || stored.currency,
-          avatar: data.user.avatar || stored.avatar || "",
-        };
-        localStorage.setItem("user_logged_in", JSON.stringify(updated));
-        setUser(updated);
-        setProfile(prev => ({
-          ...prev,
-          name: data.user.name || prev.name,
-          currency: data.user.currency || prev.currency,
-          avatar: data.user.avatar || prev.avatar,
-        }));
-      }
-    })
-    .catch(() => {});
-  }, []); 
-
   // Load per-user profile on mount or when user changes
-useEffect(() => {
-  if (user?.email) {
-    const savedProfile = localStorage.getItem(`profile_${user.email}`);
-    const data = savedProfile ? JSON.parse(savedProfile) : {};
-    setProfile({
-      name: data.name || user?.name || user?.username || "",
-      password: "",
-      avatar: user?.avatar || data.avatar || null,
-      currency: data.currency || user?.currency || "USD",
-    });
-  }
-}, [user]);
-
-const handleSaveProfile = async () => {
-  if (!user?.email) return;
-
-  try {
-    const token = localStorage.getItem("token");
-    const body = { name: profile.name };
-    if (profile.password) body.password = profile.password;
-    if (profile.currency) body.currency = profile.currency;
-    if (profile.avatar) body.avatar = profile.avatar;
-
-    const res = await fetch("https://expense-tracker-production-854d.up.railway.app/api/auth/update-profile", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(body),
-    });
-
-    const data = await res.json();
-    if (!res.ok) {
-      alert(data.message || "Failed to update profile.");
-      return;
+  useEffect(() => {
+    if (user?.email) {
+      const savedProfile = localStorage.getItem(`profile_${user.email}`);
+      const data = savedProfile ? JSON.parse(savedProfile) : {};
+      setProfile({
+        name: data.name || user?.name || user?.username || "",
+        password: "",
+        avatar: user?.avatar || data.avatar || null,
+        currency: data.currency || user?.currency || "USD",
+      });
     }
+  }, [user]);
 
-    const stored = JSON.parse(localStorage.getItem("user_logged_in")) || {};
-    const updated = {
-      ...stored,
-      name: profile.name || stored.name,
-      currency: profile.currency || stored.currency,
-      avatar: profile.avatar || stored.avatar,
-    };
-    localStorage.setItem("user_logged_in", JSON.stringify(updated));
-    localStorage.setItem(`profile_${user.email}`, JSON.stringify(updated));
-    setUser(updated);
-    if (profile.currency) setCurrency(profile.currency);
+  const handleSaveProfile = async () => {
+    if (!user?.email) return;
 
-    alert("Profile updated successfully!");
-  } catch (err) {
-    alert("Server error. Could not update profile.");
-  }
-};
-  // Input handlers
+    try {
+      const token = localStorage.getItem("token");
+      const body = { name: profile.name };
+      if (profile.password) body.password = profile.password;
+      if (profile.currency) body.currency = profile.currency;
+      if (profile.avatar) body.avatar = profile.avatar;
+
+      const res = await fetch("https://expense-tracker-production-854d.up.railway.app/api/auth/update-profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.message || "Failed to update profile.");
+        return;
+      }
+
+      const stored = JSON.parse(localStorage.getItem("user_logged_in")) || {};
+      const updated = {
+        ...stored,
+        name: profile.name || stored.name,
+        currency: profile.currency || stored.currency,
+        avatar: profile.avatar || stored.avatar,
+      };
+      localStorage.setItem("user_logged_in", JSON.stringify(updated));
+      localStorage.setItem(`profile_${user.email}`, JSON.stringify(updated));
+      setUser(updated);
+      if (profile.currency) setCurrency(profile.currency);
+
+      alert("Profile updated successfully!");
+    } catch (err) {
+      alert("Server error. Could not update profile.");
+    }
+  };
+
   const handleInputChange = (e) => {
     setProfile({ ...profile, [e.target.name]: e.target.value });
   };
@@ -134,16 +105,14 @@ const handleSaveProfile = async () => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setProfile({ ...profile, avatar: reader.result }); // Base64
+        setProfile({ ...profile, avatar: reader.result });
       };
       reader.readAsDataURL(file);
     }
   };
 
-  // Theme handler
   const handleThemeChange = (e) => setTheme(e.target.value);
 
-  // Styles
   const pageStyle = {
     backgroundColor: theme === "dark" ? "#121212" : "#f5f5f5",
     color: theme === "dark" ? "#fff" : "#000",
@@ -158,24 +127,12 @@ const handleSaveProfile = async () => {
     maxWidth: "500px",
     width: "100%",
     marginBottom: "25px",
-    boxShadow:
-      theme === "dark"
-        ? "0 8px 25px rgba(0,0,0,0.6)"
-        : "0 8px 25px rgba(0,0,0,0.1)",
+    boxShadow: theme === "dark" ? "0 8px 25px rgba(0,0,0,0.6)" : "0 8px 25px rgba(0,0,0,0.1)",
   };
 
   const labelStyle = { fontSize: "14px", marginBottom: "6px", display: "block" };
 
   const inputStyle = {
-    padding: "10px",
-    borderRadius: "8px",
-    border: theme === "dark" ? "1px solid #444" : "1px solid #ccc",
-    backgroundColor: theme === "dark" ? "#2a2a2a" : "#fff",
-    color: theme === "dark" ? "#fff" : "#000",
-    width: "100%",
-  };
-
-  const selectStyle = {
     padding: "10px",
     borderRadius: "8px",
     border: theme === "dark" ? "1px solid #444" : "1px solid #ccc",
@@ -204,7 +161,7 @@ const handleSaveProfile = async () => {
       <div style={cardStyle}>
         <h3>Appearance</h3>
         <label style={labelStyle}>Theme</label>
-        <select value={theme} onChange={handleThemeChange} style={selectStyle}>
+        <select value={theme} onChange={handleThemeChange} style={inputStyle}>
           <option value="light">🌞 Light</option>
           <option value="dark">🌙 Dark</option>
         </select>
@@ -220,28 +177,15 @@ const handleSaveProfile = async () => {
             <img
               src={profile.avatar}
               alt="Profile"
-              style={{
-                width: "90px",
-                height: "90px",
-                borderRadius: "50%",
-                objectFit: "cover",
-                marginBottom: "10px",
-              }}
+              style={{ width: "90px", height: "90px", borderRadius: "50%", objectFit: "cover", marginBottom: "10px" }}
             />
           ) : (
-            <div
-              style={{
-                width: "90px",
-                height: "90px",
-                borderRadius: "50%",
-                backgroundColor: theme === "dark" ? "#333" : "#e5e7eb",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "32px",
-                marginBottom: "10px",
-              }}
-            >
+            <div style={{
+              width: "90px", height: "90px", borderRadius: "50%",
+              backgroundColor: theme === "dark" ? "#333" : "#e5e7eb",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: "32px", marginBottom: "10px",
+            }}>
               👤
             </div>
           )}
@@ -249,22 +193,22 @@ const handleSaveProfile = async () => {
         </div>
 
         <label style={labelStyle}>Preferred Currency</label>
-<select
-  name="currency"
-  value={profile.currency || "USD"}
-  onChange={(e) => setProfile({ ...profile, currency: e.target.value })}
-  style={inputStyle}
->
-  <option value="USD">🇺🇸 USD - US Dollar</option>
-  <option value="EUR">🇪🇺 EUR - Euro</option>
-  <option value="GBP">🇬🇧 GBP - British Pound</option>
-  <option value="MKD">🇲🇰 MKD - Macedonian Denar</option>
-  <option value="CHF">🇨🇭 CHF - Swiss Franc</option>
-  <option value="JPY">🇯🇵 JPY - Japanese Yen</option>
-  <option value="CAD">🇨🇦 CAD - Canadian Dollar</option>
-  <option value="AUD">🇦🇺 AUD - Australian Dollar</option>
-</select>
-<br /><br />
+        <select
+          name="currency"
+          value={profile.currency || "USD"}
+          onChange={(e) => setProfile({ ...profile, currency: e.target.value })}
+          style={inputStyle}
+        >
+          <option value="USD">🇺🇸 USD - US Dollar</option>
+          <option value="EUR">🇪🇺 EUR - Euro</option>
+          <option value="GBP">🇬🇧 GBP - British Pound</option>
+          <option value="MKD">🇲🇰 MKD - Macedonian Denar</option>
+          <option value="CHF">🇨🇭 CHF - Swiss Franc</option>
+          <option value="JPY">🇯🇵 JPY - Japanese Yen</option>
+          <option value="CAD">🇨🇦 CAD - Canadian Dollar</option>
+          <option value="AUD">🇦🇺 AUD - Australian Dollar</option>
+        </select>
+        <br /><br />
 
         <label style={labelStyle}>Full Name</label>
         <input
@@ -274,9 +218,7 @@ const handleSaveProfile = async () => {
           onChange={handleInputChange}
           style={inputStyle}
         />
-
-        <br />
-        <br />
+        <br /><br />
 
         <label style={labelStyle}>Password</label>
         <input
