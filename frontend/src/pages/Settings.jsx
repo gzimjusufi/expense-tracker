@@ -1,35 +1,5 @@
 import React, { useState, useEffect } from "react";
 
-useEffect(() => {
-  const token = localStorage.getItem("token");
-  if (!token) return;
-
-  fetch("https://expense-tracker-production-854d.up.railway.app/api/auth/verify", {
-    headers: { Authorization: `Bearer ${token}` }
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.user) {
-      const stored = JSON.parse(localStorage.getItem("user_logged_in")) || {};
-      const updated = {
-        ...stored,
-        name: data.user.name || stored.name,
-        currency: data.user.currency || stored.currency,
-        avatar: data.user.avatar || stored.avatar || "",
-      };
-      localStorage.setItem("user_logged_in", JSON.stringify(updated));
-      setUser(updated);
-      setProfile(prev => ({
-        ...prev,
-        name: data.user.name || prev.name,
-        currency: data.user.currency || prev.currency,
-        avatar: data.user.avatar || prev.avatar,
-      }));
-    }
-  })
-  .catch(() => {});
-}, []); // eslint-disable-line react-hooks/exhaustive-deps
-
 const Settings = ({ theme, setTheme, user, setUser, setCurrency }) => {
   const [profile, setProfile] = useState({
     name: "",
@@ -37,6 +7,36 @@ const Settings = ({ theme, setTheme, user, setUser, setCurrency }) => {
     avatar: null,
     currency: "USD",
   });
+
+  // Fetch latest from MongoDB on mount
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    fetch("https://expense-tracker-production-854d.up.railway.app/api/auth/verify", {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.user) {
+        const stored = JSON.parse(localStorage.getItem("user_logged_in")) || {};
+        const updated = {
+          ...stored,
+          name: data.user.name || stored.name,
+          currency: data.user.currency || stored.currency,
+          avatar: data.user.avatar || stored.avatar || "",
+        };
+        localStorage.setItem("user_logged_in", JSON.stringify(updated));
+        setUser(updated);
+        setProfile(prev => ({
+          ...prev,
+          name: data.user.name || prev.name,
+          currency: data.user.currency || prev.currency,
+          avatar: data.user.avatar || prev.avatar,
+        }));
+      }
+    })
+    .catch(() => {});
+  }, []); 
 
   // Load per-user profile on mount or when user changes
 useEffect(() => {
