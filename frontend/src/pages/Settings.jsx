@@ -78,8 +78,8 @@ const Settings = ({ theme, setTheme, user, setUser, setCurrency }) => {
 
       alert("Profile updated successfully!");
     } catch (err) {
-      alert("Server error. Could not update profile.");
-    }
+  console.error("Profile save error:", err);
+}
   };
 
   const handleInputChange = (e) => {
