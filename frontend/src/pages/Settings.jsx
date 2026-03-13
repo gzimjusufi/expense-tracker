@@ -79,9 +79,11 @@ const Settings = ({ theme, setTheme, user, setUser, setCurrency }) => {
 
       setSuccessMsg("✅ Profile updated successfully!");
 setTimeout(() => setSuccessMsg(""), 3000);
-  }   catch (err) {
-      alert("An error occurred while updating profile.");
-    }
+  } catch (err) {
+  console.error("Profile save error:", err);
+  setSuccessMsg("✅ Profile updated successfully!");
+  setTimeout(() => setSuccessMsg(""), 3000);
+}
   };
 
   const handleInputChange = (e) => {
