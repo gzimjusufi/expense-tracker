@@ -39,20 +39,6 @@ const Settings = ({ theme, setTheme, user, setUser, setCurrency }) => {
     .catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Load per-user profile on mount or when user changes
-  useEffect(() => {
-    if (user?.email) {
-      const savedProfile = localStorage.getItem(`profile_${user.email}`);
-      const data = savedProfile ? JSON.parse(savedProfile) : {};
-      setProfile({
-        name: data.name || user?.name || user?.username || "",
-        password: "",
-        avatar: user?.avatar || data.avatar || null,
-        currency: data.currency || user?.currency || "USD",
-      });
-    }
-  }, [user]);
-
   const handleSaveProfile = async () => {
     if (!user?.email) return;
 
