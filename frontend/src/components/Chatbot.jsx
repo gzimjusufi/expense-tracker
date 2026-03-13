@@ -9,9 +9,12 @@ const authHeader = () => ({
 
 export default function Chatbot({ theme, currency }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState(() => {
+  const saved = localStorage.getItem("chatbot_messages");
+  return saved ? JSON.parse(saved) : [
     { role: "assistant", content: "Hi! I'm your expense assistant 💰 Ask me anything about your spending!" }
-  ]);
+  ];
+});
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [expenses, setExpenses] = useState([]);
@@ -58,6 +61,9 @@ export default function Chatbot({ theme, currency }) {
       setLoading(false);
     }
   };
+  useEffect(() => {
+  localStorage.setItem("chatbot_messages", JSON.stringify(messages));
+}, [messages]);
 
   const dark = theme === "dark";
 
@@ -114,7 +120,11 @@ export default function Chatbot({ theme, currency }) {
           }}>
             💰 Expense Assistant
             <button
-              onClick={() => setMessages([{ role: "assistant", content: "Hi! I'm your expense assistant 💰 Ask me anything about your spending!" }])}
+              onClick={() => {
+  const initial = [{ role: "assistant", content: "Hi! I'm your expense assistant 💰 Ask me anything about your spending!" }];
+  setMessages(initial);
+  localStorage.removeItem("chatbot_messages");
+}}
               style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: "12px", opacity: 0.8 }}
             >
               Clear
