@@ -8,6 +8,7 @@ const Settings = ({ theme, setTheme, user, setUser, setCurrency }) => {
     currency: "USD",
   });
 
+  const [successMsg, setSuccessMsg] = useState("");
   // Fetch latest profile from MongoDB on mount
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -76,10 +77,11 @@ const Settings = ({ theme, setTheme, user, setUser, setCurrency }) => {
       setUser(updated);
       if (profile.currency) setCurrency(profile.currency);
 
-      alert("Profile updated successfully!");
-    } catch (err) {
-  console.error("Profile save error:", err);
-}
+      setSuccessMsg("✅ Profile updated successfully!");
+setTimeout(() => setSuccessMsg(""), 3000);
+  }   catch (err) {
+      alert("An error occurred while updating profile.");
+    }
   };
 
   const handleInputChange = (e) => {
@@ -219,6 +221,20 @@ const Settings = ({ theme, setTheme, user, setUser, setCurrency }) => {
         <button style={buttonStyle} onClick={handleSaveProfile}>
           Save Changes
         </button>
+        {successMsg && (
+  <div style={{
+    marginTop: "12px",
+    padding: "10px",
+    backgroundColor: "#d1fae5",
+    color: "#065f46",
+    borderRadius: "8px",
+    textAlign: "center",
+    fontSize: "14px",
+    fontWeight: "500",
+  }}>
+    {successMsg}
+  </div>
+)}
       </div>
     </div>
   );
