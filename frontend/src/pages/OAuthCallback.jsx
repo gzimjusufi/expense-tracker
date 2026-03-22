@@ -14,7 +14,7 @@ function OAuthCallback({ setUser }) {
       localStorage.setItem("token", token);
 
       // You may want to fetch the user profile with this token
-      fetch("https://expense-tracker-production-854d.up.railway.app/api/auth/me", {
+      fetch("https://expense-tracker-3dmz.onrender.com/api/auth/me", {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then((res) => res.json())

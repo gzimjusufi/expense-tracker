@@ -14,7 +14,7 @@ const Settings = ({ theme, setTheme, user, setUser, setCurrency }) => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    fetch("https://expense-tracker-production-854d.up.railway.app/api/auth/verify", {
+    fetch("https://expense-tracker-3dmz.onrender.com/api/auth/verify", {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => res.json())
@@ -50,7 +50,7 @@ const Settings = ({ theme, setTheme, user, setUser, setCurrency }) => {
       if (profile.currency) body.currency = profile.currency;
       if (profile.avatar) body.avatar = profile.avatar;
 
-      const res = await fetch("https://expense-tracker-production-854d.up.railway.app/api/auth/update-profile", {
+      const res = await fetch("https://expense-tracker-3dmz.onrender.com/api/auth/update-profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

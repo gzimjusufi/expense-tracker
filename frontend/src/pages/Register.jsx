@@ -23,7 +23,7 @@ useEffect(() => {
     setLoading(true);
 
     try {
-      const res = await fetch("https://expense-tracker-production-854d.up.railway.app/api/auth/register", {
+      const res = await fetch("https://expense-tracker-3dmz.onrender.com/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
@@ -119,7 +119,7 @@ useEffect(() => {
       <div style={{ marginTop: "15px", textAlign: "center" }}>
   <hr style={{ marginBottom: "15px" }} />
   
-    <a href="https://expense-tracker-production-854d.up.railway.app/api/auth/google"
+    <a href="https://expense-tracker-3dmz.onrender.com/api/auth/google"
     style={{
       display: "inline-block",
       width: "100%",

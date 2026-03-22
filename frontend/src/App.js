@@ -52,7 +52,7 @@ function App() {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    fetch("https://expense-tracker-production-854d.up.railway.app/api/auth/verify", {
+    fetch("https://expense-tracker-3dmz.onrender.com/api/auth/verify", {
   headers: { Authorization: `Bearer ${token}` }
 })
 .then(res => res.json())

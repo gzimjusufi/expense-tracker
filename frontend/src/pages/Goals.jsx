@@ -21,7 +21,7 @@ export default function Goals({ theme, currency = "USD" }) {
 
   const fetchGoals = async () => {
     try {
-      const res = await axios.get("https://expense-tracker-production-854d.up.railway.app/api/goals", authHeader());
+      const res = await axios.get("https://expense-tracker-3dmz.onrender.com/api/goals", authHeader());
       setGoals(res.data);
     } catch (err) { console.error(err); }
   };
@@ -30,7 +30,7 @@ export default function Goals({ theme, currency = "USD" }) {
     e.preventDefault();
     if (!name || !targetAmount) return alert("Please fill in name and target amount!");
     try {
-      const res = await axios.post("https://expense-tracker-production-854d.up.railway.app/api/goals", { name, targetAmount, deadline, emoji }, authHeader());
+      const res = await axios.post("https://expense-tracker-3dmz.onrender.com/api/goals", { name, targetAmount, deadline, emoji }, authHeader());
       setGoals([res.data, ...goals]);
       setName(""); setTargetAmount(""); setDeadline(""); setEmoji("🎯");
     } catch (err) { console.error(err); }
@@ -40,7 +40,7 @@ export default function Goals({ theme, currency = "USD" }) {
     const amount = addAmounts[id];
     if (!amount || amount <= 0) return alert("Enter a valid amount!");
     try {
-      const res = await axios.put(`https://expense-tracker-production-854d.up.railway.app/api/goals/${id}/add`, { amount }, authHeader());
+      const res = await axios.put(`https://expense-tracker-3dmz.onrender.com/api/goals/${id}/add`, { amount }, authHeader());
       setGoals(goals.map(g => g._id === id ? res.data : g));
       setAddAmounts({ ...addAmounts, [id]: "" });
     } catch (err) { console.error(err); }
@@ -48,14 +48,14 @@ export default function Goals({ theme, currency = "USD" }) {
 
   const deleteGoal = async (id) => {
     try {
-      await axios.delete(`https://expense-tracker-production-854d.up.railway.app/api/goals/${id}`, authHeader());
+      await axios.delete(`https://expense-tracker-3dmz.onrender.com/api/goals/${id}`, authHeader());
       setGoals(goals.filter(g => g._id !== id));
     } catch (err) { console.error(err); }
   };
 
   const saveEdit = async () => {
     try {
-      const res = await axios.put(`https://expense-tracker-production-854d.up.railway.app/api/goals/${editingGoal._id}`, editData, authHeader());
+      const res = await axios.put(`https://expense-tracker-3dmz.onrender.com/api/goals/${editingGoal._id}`, editData, authHeader());
       setGoals(goals.map(g => g._id === editingGoal._id ? res.data : g));
       setEditingGoal(null);
     } catch (err) { console.error(err); }
@@ -65,7 +65,7 @@ export default function Goals({ theme, currency = "USD" }) {
   const amount = addAmounts[id];
   if (!amount || amount <= 0) return alert("Enter a valid amount!");
   try {
-    const res = await axios.put(`https://expense-tracker-production-854d.up.railway.app/api/goals/${id}/remove`, { amount }, authHeader());
+    const res = await axios.put(`https://expense-tracker-3dmz.onrender.com/api/goals/${id}/remove`, { amount }, authHeader());
     setGoals(goals.map(g => g._id === id ? res.data : g));
     setAddAmounts({ ...addAmounts, [id]: "" });
   } catch (err) { console.error(err); }

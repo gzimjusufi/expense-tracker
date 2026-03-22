@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
 
-const API_URL = "https://expense-tracker-production-854d.up.railway.app";
+const API_URL = "https://expense-tracker-3dmz.onrender.com";
 
 const authHeader = () => ({
   headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
