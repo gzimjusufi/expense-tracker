@@ -287,7 +287,8 @@ export default function Dashboard({ theme, user, currency }) {
           <div style={{ ...card, flex: "1 1 140px", borderLeft: `3px solid ${categoryColors[topCategory?.[0]] || "#95a5a6"}` }}>
             <div style={labelStyle}>Top Category</div>
             <div style={{ ...valueStyle, color: categoryColors[topCategory?.[0]] || "#95a5a6" }}>
-              {topCategory ? topCategory[0] : "—"}
+            <span style={accentDot(categoryColors[topCategory?.[0]] || "#95a5a6")} />
+            {topCategory ? topCategory[0] : "—"}
             </div>
             <div style={{ fontSize: "12px", opacity: 0.5, marginTop: "6px" }}>
               {topCategory ? formatCurrency(topCategory[1], currency) : "No data"}
