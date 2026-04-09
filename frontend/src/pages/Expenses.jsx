@@ -4,6 +4,36 @@ import { motion, AnimatePresence } from "framer-motion";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { formatCurrency } from "../services/currency";
 
+const labelStyle = {
+  fontSize: "12px",
+  fontWeight: "600",
+  opacity: 0.5,
+  marginBottom: "8px",
+  textTransform: "uppercase",
+  letterSpacing: "0.08em",
+};
+
+const glassCard = (dark) => ({
+  background: dark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.85)",
+  backdropFilter: "blur(20px)",
+  WebkitBackdropFilter: "blur(20px)",
+  borderRadius: "16px",
+  border: dark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(0,0,0,0.07)",
+  boxShadow: dark
+    ? "0 8px 32px rgba(0,0,0,0.4)"
+    : "0 8px 32px rgba(0,0,0,0.08)",
+  padding: "20px",
+});
+
+const inputStyle = (dark) => ({
+  padding: "10px 14px",
+  borderRadius: "10px",
+  border: dark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(0,0,0,0.1)",
+  backgroundColor: dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+  color: dark ? "#fff" : "#000",
+  outline: "none",
+});
+
 const Expenses = ({ theme, currency }) => {
   const [category, setCategory] = useState("Food");
   const [amount, setAmount] = useState("");
@@ -218,7 +248,9 @@ setPaymentMethod("card");
   return (
 <div
   style={{
-    backgroundColor: theme === "dark" ? "#121212" : "#f5f5f5",
+    background: theme === "dark"
+  ? "linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #0f0f1a 100%)"
+  : "linear-gradient(135deg, #f0f4ff 0%, #fafafa 50%, #f0f4ff 100%)",
     color: theme === "dark" ? "#fff" : "#000",
     minHeight: "100vh",
     padding: "20px",
@@ -227,11 +259,8 @@ setPaymentMethod("card");
       <h1 className="mb-4 text-center">Expenses Tab</h1>
 
       {/* Budget */}
-      <div
-        className={`card p-3 mb-4 shadow ${
-          theme === "dark" ? "bg-secondary text-light" : "bg-white"
-        }`}
-      >
+      <div style={labelStyle}>Monthly Budget</div>
+      <div style={{ ...glassCard(theme === "dark"), marginBottom: "20px" }}>
         <div className="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
           <h5 className="m-0">Monthly Budget</h5>
           <div className="d-flex gap-2 align-items-center">
@@ -274,9 +303,34 @@ setPaymentMethod("card");
           </p>
         )}
       </div>
+      {theme === "dark" && (
+  <>
+    <div style={{
+      position: "fixed",
+      top: "-100px",
+      left: "-100px",
+      width: "400px",
+      height: "400px",
+      borderRadius: "50%",
+      background: "radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)",
+      pointerEvents: "none",
+    }} />
+    <div style={{
+      position: "fixed",
+      bottom: "-100px",
+      right: "-100px",
+      width: "500px",
+      height: "500px",
+      borderRadius: "50%",
+      background: "radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%)",
+      pointerEvents: "none",
+    }} />
+  </>
+)}
 
       {/* Add Expense Form */}
-      <form className="row g-3 mb-4" onSubmit={addExpense}>
+      <div style={labelStyle}>Add Expense</div>
+<form className="row g-3 mb-4" onSubmit={addExpense}>
         <div className="col-12 col-md-3">
           <select
             className={`form-select ${
@@ -371,7 +425,15 @@ setPaymentMethod("card");
     </select>
   )}
 </div>
-          <button type="submit" className="btn btn-success w-100">
+          <button type="submit" style={{
+            background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+            color: "#fff",
+            border: "none",
+            borderRadius: "10px",
+            padding: "10px",
+            fontWeight: "600",
+            boxShadow: "0 4px 15px rgba(99,102,241,0.4)",
+          }}>
             Add
           </button>
         </div>
@@ -387,110 +449,138 @@ setPaymentMethod("card");
   />
 </div>
 
-      {/* Expense Table */}
-      <div className="table-responsive">
-        <table
-          className={`table table-hover table-striped shadow ${
-            theme === "dark" ? "table-dark" : "table-light"
-          }`}
-        >
-          <thead className={theme === "dark" ? "table-secondary" : "table-dark"}>
-            <tr>
-              <th>Category</th>
-              <th>Amount</th>
-              <th>Date</th>
-              <th>Description</th>
-              <th>Recurring</th>
-              <th>Tags</th>
-              <th>Payment</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <AnimatePresence>
-              {expenses.filter((expense) => {
-  const q = search.toLowerCase();
-  return (
-    expense.description?.toLowerCase().includes(q) ||
-    expense.category?.toLowerCase().includes(q) ||
-    expense.tags?.some(t => t.toLowerCase().includes(q))
-  );
-}).map((expense) => (
-                <motion.tr
-                  key={expense._id}
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -5 }}
-                  transition={{ duration: 0.3 }}
+{/* Expenses List (Glass UI) */}
+<div style={{ display: "grid", gap: "12px" }}>
+  <AnimatePresence>
+    {expenses
+      .filter((expense) => {
+        const q = search.toLowerCase();
+        return (
+          expense.description?.toLowerCase().includes(q) ||
+          expense.category?.toLowerCase().includes(q) ||
+          expense.tags?.some((t) => t.toLowerCase().includes(q))
+        );
+      })
+      .map((expense) => (
+        <motion.div
+  key={expense._id}
+  style={{
+    ...glassCard(theme === "dark"),
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: "15px",
+  }}
+  initial={{ opacity: 0, y: 10 }}
+  animate={{ opacity: 1, y: 0 }}
+  exit={{ opacity: 0, y: -10 }}
+  whileHover={{ scale: 1.02 }}
+  whileTap={{ scale: 0.98 }}
+  transition={{ type: "spring", stiffness: 200 }}
+>
+          {/* LEFT */}
+          <div>
+            <div style={{ fontWeight: "600" }}>
+              {expense.description}
+            </div>
+
+            <div style={{ fontSize: "12px", opacity: 0.6 }}>
+              <span style={getCategoryBadge(expense.category)}>
+                {expense.category}
+              </span>{" "}
+              • {new Date(expense.date).toLocaleDateString()}
+            </div>
+
+            {/* RECURRING */}
+            {expense.recurring && (
+              <div style={{ fontSize: "12px", marginTop: "4px" }}>
+                <span
+                  style={{
+                    backgroundColor: "#27ae60",
+                    color: "#fff",
+                    padding: "2px 6px",
+                    borderRadius: "6px",
+                    fontWeight: "600",
+                  }}
                 >
-                  <td>
-                    <span style={getCategoryBadge(expense.category)}>
-                      {expense.category}
+                  🔁 {expense.recurrence}
+                </span>
+              </div>
+            )}
+
+            {/* TAGS */}
+            <div style={{ marginTop: "5px" }}>
+              {expense.tags?.length > 0
+                ? expense.tags.map((tag, i) => (
+                    <span
+                      key={i}
+                      style={{
+                        backgroundColor: "#6366f1",
+                        color: "#fff",
+                        padding: "2px 8px",
+                        borderRadius: "10px",
+                        fontSize: "11px",
+                        marginRight: "4px",
+                      }}
+                    >
+                      #{tag}
                     </span>
-                  </td>
-                  <td>{formatCurrency(expense.amount, currency)}</td>
-                  <td>{new Date(expense.date).toLocaleDateString()}</td>
-                  <td>{expense.description}</td>
-                  <td>
-  {expense.recurring ? (
-    <span
-      style={{
-        backgroundColor: "#27ae60",
-        color: "#fff",
-        padding: "3px 8px",
-        borderRadius: "5px",
-        fontSize: "12px",
-        fontWeight: "600",
-      }}
-    >
-      ✅ {expense.recurrence}
-    </span>
-  ) : (
-    "—"
-  )}
-</td>
-<td>          
-  {expense.tags?.length > 0 ? expense.tags.map((tag, i) => (
-    <span key={i} style={{
-      display: "inline-block",
-      backgroundColor: "#6366f1",
-      color: "#fff",
-      padding: "2px 8px",
-      borderRadius: "12px",
-      fontSize: "12px",
-      marginRight: "4px",
-    }}>
-      #{tag}
-    </span>
-  )) : "—"}
-</td>
-<td>
-  {expense.paymentMethod === "cash" && "💵 Cash"}
-  {expense.paymentMethod === "card" && "💳 Card"}
-  {expense.paymentMethod === "bank transfer" && "🏦 Bank Transfer"}
-  {expense.paymentMethod === "other" && "🔄 Other"}
-  {!expense.paymentMethod && "💳 Card"}
-</td>
-                  <td>
-                    <button
-                      className="btn btn-warning btn-sm me-1"
-                      onClick={() => openEditModal(expense)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => deleteExpense(expense._id)}
-                      className="btn btn-danger btn-sm"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </motion.tr>
-              ))}
-            </AnimatePresence>
-          </tbody>
-        </table>
-      </div>
+                  ))
+                : null}
+            </div>
+          </div>
+
+          {/* RIGHT */}
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontWeight: "700", color: "#10b981" }}>
+              {formatCurrency(expense.amount, currency)}
+            </div>
+
+            {/* PAYMENT */}
+            <div style={{ fontSize: "12px", opacity: 0.7 }}>
+              {expense.paymentMethod === "cash" && "💵 Cash"}
+              {expense.paymentMethod === "card" && "💳 Card"}
+              {expense.paymentMethod === "bank transfer" && "🏦 Bank Transfer"}
+              {expense.paymentMethod === "other" && "🔄 Other"}
+              {!expense.paymentMethod && "💳 Card"}
+            </div>
+
+            {/* ACTIONS */}
+            <div style={{ marginTop: "6px" }}>
+              <button
+                onClick={() => openEditModal(expense)}
+                style={{
+                  marginRight: "5px",
+                  padding: "5px 10px",
+                  border: "none",
+                  borderRadius: "6px",
+                  background: "#f59e0b",
+                  color: "#fff",
+                  cursor: "pointer",
+                }}
+              >
+                Edit
+              </button>
+
+              <button
+                onClick={() => deleteExpense(expense._id)}
+                style={{
+                  padding: "5px 10px",
+                  border: "none",
+                  borderRadius: "6px",
+                  background: "#ef4444",
+                  color: "#fff",
+                  cursor: "pointer",
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      ))}
+  </AnimatePresence>
+</div>
 
       {/* Edit Modal */}
       <AnimatePresence>
@@ -543,7 +633,7 @@ setPaymentMethod("card");
               <div className="mb-2">
                 <input
                   type="number"
-                  className="form-control"
+                  style={inputStyle(theme === "dark")}
                   value={editData.amount}
                   onChange={(e) =>
                     setEditData({ ...editData, amount: e.target.value })
@@ -553,7 +643,7 @@ setPaymentMethod("card");
               <div className="mb-2">
                 <input
                   type="date"
-                  className="form-control"
+                  style={inputStyle(theme === "dark")}
                   value={editData.date}
                   onChange={(e) =>
                     setEditData({ ...editData, date: e.target.value })
@@ -563,7 +653,7 @@ setPaymentMethod("card");
               <div className="mb-2">
                 <input
                   type="text"
-                  className="form-control"
+                  style={inputStyle(theme === "dark")}
                   value={editData.description}
                   onChange={(e) =>
                     setEditData({ ...editData, description: e.target.value })
@@ -574,7 +664,7 @@ setPaymentMethod("card");
     <div className="mb-2">
   <input
     type="text"
-    className="form-control"
+    style={inputStyle(theme === "dark")}
     placeholder="Tags (comma separated)"
     value={editData.tags?.join(", ") || ""}
     onChange={(e) => setEditData({ ...editData, tags: e.target.value.split(",").map(t => t.trim()) })}
@@ -629,7 +719,15 @@ setPaymentMethod("card");
                   Cancel
                 </button>
                 <button
-  className="btn btn-success"
+  style={{
+  background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+  color: "#fff",
+  border: "none",
+  borderRadius: "10px",
+  padding: "10px",
+  fontWeight: "600",
+  boxShadow: "0 4px 15px rgba(99,102,241,0.4)",
+}}
   onClick={saveEdit}
   disabled={editData.recurring && (!editData.recurrence || editData.recurrence === "")}
 >
