@@ -20,6 +20,39 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { formatCurrency } from "../services/currency";
 
+const glassCard = (dark) => ({
+  background: dark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.85)",
+  backdropFilter: "blur(20px)",
+  WebkitBackdropFilter: "blur(20px)",
+  borderRadius: "16px",
+  border: dark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(0,0,0,0.07)",
+  boxShadow: dark ? "0 8px 32px rgba(0,0,0,0.4)" : "0 8px 32px rgba(0,0,0,0.08)",
+  padding: "20px",
+  marginBottom: "20px",
+});
+
+const inputBase = (dark) => ({
+  padding: "10px 14px",
+  borderRadius: "10px",
+  border: dark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(0,0,0,0.1)",
+  backgroundColor: dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+  color: dark ? "#fff" : "#000",
+  outline: "none",
+  fontSize: "14px",
+});
+
+const buttonBase = (bg, color) => ({
+  padding: "10px 18px",
+  borderRadius: "10px",
+  border: "none",
+  fontWeight: "600",
+  fontSize: "14px",
+  cursor: "pointer",
+  background: bg,
+  color: color,
+  transition: "opacity 0.2s",
+});
+
 // Attach token to requests
 const authHeader = () => {
   const token = localStorage.getItem("token"); // or sessionStorage if you stored it there
@@ -478,6 +511,7 @@ export default function Reports({ theme = "dark", currency: userCurrency = "USD"
     // but keeping for UX parity with drawer button.
     setIsDrawerOpen(false);
   };
+  
 
   const resetFilters = () => {
     setSelectedCategories([]);
@@ -574,303 +608,284 @@ const handleShareReport = async () => {
   // -------------------------
   // UI
   // -------------------------
-  return (
-    <div
-      className={`min-h-screen p-6 transition-all duration-300 ${
-        theme === "dark" ? "bg-gray-950 text-white" : "bg-gray-100 text-gray-900"
-      }`}
-    >
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <div>
-          <motion.h2 className="text-3xl font-bold mb-1">Reports Dashboard</motion.h2>
-<p className="mb-2 text-gray-400">
-  Track spending, explore trends, and compare periods.
-</p>
-<p className="mb-5 text-gray-400">
-  Detailed analysis of expenses with filters, comparisons, and export options.
-</p>
+  const pageStyle = {
+  background: theme === "dark"
+    ? "linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #0f0f1a 100%)"
+    : "linear-gradient(135deg, #f0f4ff 0%, #fafafa 50%, #f0f4ff 100%)",
+  color: theme === "dark" ? "#fff" : "#111",
+  minHeight: "100vh",
+  padding: "24px",
+};
+  const dark = theme === "dark";
+
+ return (
+    <div style={pageStyle}>
+ 
+      {/* Glow effects */}
+      <div style={{
+        position: "fixed", top: "-100px", left: "-100px",
+        width: "300px", height: "300px", background: "#6366f1",
+        filter: "blur(120px)", opacity: dark ? 0.2 : 0.08, zIndex: 0, pointerEvents: "none",
+      }} />
+      <div style={{
+        position: "fixed", bottom: "-100px", right: "-100px",
+        width: "300px", height: "300px", background: "#34d399",
+        filter: "blur(120px)", opacity: dark ? 0.2 : 0.08, zIndex: 0, pointerEvents: "none",
+      }} />
+ 
+      {/* CONTENT WRAPPER */}
+      <div style={{ position: "relative", zIndex: 1 }}>
+ 
+        {/* Header */}
+        <div style={{ marginBottom: "24px" }}>
+          <motion.h2 style={{ fontSize: "28px", fontWeight: "700", marginBottom: "6px", letterSpacing: "-0.02em" }}>
+            Reports Dashboard
+          </motion.h2>
+          <p style={{ opacity: 0.5, fontSize: "14px", marginBottom: "16px" }}>
+            Detailed analysis of expenses with filters, comparisons, and export options.
+          </p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+            {[
+              { label: "Open Filters", onClick: () => setIsDrawerOpen(true), color: "#6366f1" },
+              { label: "Share Report", onClick: () => setShowShareModal(true), color: "#8b5cf6" },
+              { label: "Export CSV", onClick: handleExport, color: "#3b82f6" },
+              { label: "Export PDF", onClick: handleExportPDF, color: "#ef4444" },
+              { label: "Upload", onClick: handleImport, color: "#059669" },
+              { label: "Reset", onClick: resetFilters, color: "#6b7280" },
+            ].map((btn, i) => (
+              <button key={i} onClick={btn.onClick} style={{
+                padding: "8px 14px", borderRadius: "10px", border: "none",
+                background: btn.color, color: "#fff", fontWeight: "600",
+                fontSize: "13px", cursor: "pointer", transition: "opacity 0.2s",
+                boxShadow: `0 4px 12px ${btn.color}44`,
+              }}
+                onMouseOver={(e) => (e.currentTarget.style.opacity = "0.85")}
+                onMouseOut={(e) => (e.currentTarget.style.opacity = "1")}
+              >
+                {btn.label}
+              </button>
+            ))}
+            <label style={{ cursor: "pointer" }}>
+              <input type="file" accept=".csv" onChange={(e) => setFile(e.target.files?.[0] || null)} style={{ display: "none" }} />
+              <span
+                onClick={() => document.querySelector('input[type="file"]').click()}
+                style={{
+                  display: "inline-block", padding: "8px 14px", borderRadius: "10px",
+                  background: "#16a34a", color: "#fff", fontWeight: "600",
+                  fontSize: "13px", cursor: "pointer", boxShadow: "0 4px 12px #16a34a44",
+                }}
+              >
+                Import CSV
+              </span>
+            </label>
+          </div>
         </div>
-
-        <div className="flex flex-wrap items-center gap-2 w-full">
-          <button
-            onClick={() => setIsDrawerOpen(true)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-3 py-2 rounded-xl shadow text-sm"
-          >
-            Open Filters
-          </button>
-          <button
-          onClick={() => setShowShareModal(true)}
-          className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-3 py-2 rounded-xl shadow text-sm"
-          >
-            Share Report
-          </button>
-          <button
-            onClick={handleExport}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-2 rounded-xl shadow text-sm"
-          >
-            Export CSV
-          </button>
-          <button
-            onClick={handleExportPDF}
-            className="bg-red-600 hover:bg-red-700 text-white font-semibold px-3 py-2 rounded-xl shadow text-sm"
-          >
-            Export PDF
-          </button>
-          <label className="cursor-pointer">
-            <span className="sr-only">Import CSV</span>
-            <input
-              type="file"
-              accept=".csv"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
-              className="hidden"
-            />
-            <span
-              onClick={() => document.querySelector('input[type="file"]').click()}
-              className="inline-block bg-green-600 hover:bg-green-700 text-white font-semibold px-3 py-2 rounded-xl shadow text-sm"
-            >
-              Import CSV
-            </span>
-          </label>
-          <button
-            onClick={handleImport}
-            className="bg-green-700 hover:bg-green-800 text-white font-semibold px-3 py-2 rounded-xl shadow text-sm"
-          >
-            Upload
-          </button>
-          <button
-            onClick={resetFilters}
-            className="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-3 py-2 rounded-xl shadow text-sm"
-          >
-            Reset
-          </button>
+ 
+        {/* KPIs */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginBottom: "24px" }}>
+          {[
+            { label: "Total Spent", value: formatCurrency(totalSpent, userCurrency), color: "#6366f1", icon: "💸" },
+            { label: "Avg per Month", value: formatCurrency(avgPerMonth, userCurrency), color: "#10b981", icon: "📅" },
+            { label: "Top Category", value: topCat ? topCat.name : "—", sub: topCat ? formatCurrency(topCat.amount, userCurrency) : "", color: "#f59e0b", icon: "🏆" },
+          ].map((item, i) => (
+            <motion.div key={i} layout style={{
+              ...glassCard(dark),
+              borderTop: `2px solid ${item.color}`,
+              position: "relative", overflow: "hidden", marginBottom: 0,
+            }}>
+              <div style={{ position: "absolute", top: "-10px", right: "-10px", fontSize: "50px", opacity: 0.07 }}>{item.icon}</div>
+              <div style={{ fontSize: "11px", fontWeight: "600", letterSpacing: "0.08em", textTransform: "uppercase", opacity: 0.5, marginBottom: "6px" }}>
+                {item.label}
+              </div>
+              <div style={{ fontSize: "22px", fontWeight: "700", color: item.color }}>{item.value}</div>
+              {item.sub && <div style={{ fontSize: "12px", opacity: 0.5, marginTop: "4px" }}>{item.sub}</div>}
+            </motion.div>
+          ))}
         </div>
-      </div>
-
-      {/* KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <motion.div
-          layout
-          className={`rounded-2xl p-4 shadow ${
-            theme === "dark" ? "bg-gray-900" : "bg-white"
-          }`}
-        >
-          <div className="text-sm opacity-70">Total Spent (current filters)</div>
-          <div className="text-2xl font-bold">{formatCurrency(totalSpent, userCurrency)}</div>
-        </motion.div>
-
-        <motion.div
-          layout
-          className={`rounded-2xl p-4 shadow ${
-            theme === "dark" ? "bg-gray-900" : "bg-white"
-          }`}
-        >
-          <div className="text-sm opacity-70">Average per Month</div>
-          <div className="text-2xl font-bold">{formatCurrency(avgPerMonth, userCurrency)}</div>
-        </motion.div>
-
-        <motion.div
-          layout
-          className={`rounded-2xl p-4 shadow ${
-            theme === "dark" ? "bg-gray-900" : "bg-white"
-          }`}
-        >
-          <div className="text-sm opacity-70">Top Category</div>
-          <div className="text-lg font-semibold">
-            {topCat ? (
-              <>
-                {topCat.name} <span className="opacity-70">({formatCurrency(topCat.amount, userCurrency)})</span>
-              </>
-            ) : (
-              <span className="opacity-60">—</span>
-            )}
+ 
+        {/* Tabs */}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "16px" }}>
+          {[
+            { key: "summary", label: "Summary" },
+            { key: "trends", label: "Trends" },
+            { key: "comparison", label: "Comparison" },
+            { key: "pie", label: "By Category" },
+          ].map((t) => (
+            <button key={t.key} onClick={() => setActiveTab(t.key)} style={{
+              padding: "8px 18px", borderRadius: "10px", border: "none",
+              fontWeight: "600", fontSize: "13px", cursor: "pointer", transition: "all 0.2s",
+              background: activeTab === t.key
+                ? "linear-gradient(135deg, #6366f1, #8b5cf6)"
+                : dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)",
+              color: activeTab === t.key ? "#fff" : dark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.7)",
+              boxShadow: activeTab === t.key ? "0 4px 12px rgba(99,102,241,0.4)" : "none",
+            }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+ 
+        {/* Active Filter Summary */}
+        <motion.div layout style={{ ...glassCard(dark), marginBottom: "20px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+            {[
+              { label: "Date Range", value: `${dateRange.start || "Any"} – ${dateRange.end || "Any"}` },
+              { label: "Categories", value: selectedCategories.length > 0 ? selectedCategories.join(", ") : "All" },
+              { label: "Total Spent", value: formatCurrency(totalSpent, userCurrency) },
+              { label: "Avg per Month", value: formatCurrency(avgPerMonth, userCurrency) },
+              { label: "Top Category", value: topCat ? `${topCat.name} (${formatCurrency(topCat.amount, userCurrency)})` : "—" },
+            ].map((item, i) => (
+              <React.Fragment key={i}>
+                <div style={{ fontSize: "12px", opacity: 0.5 }}>{item.label}</div>
+                <div style={{ fontSize: "13px", fontWeight: "600" }}>{item.value}</div>
+              </React.Fragment>
+            ))}
           </div>
         </motion.div>
-      </div>
-
-      {/* Tabs */}
-      <div className="mb-4 flex flex-wrap gap-2">
-        {[
-          { key: "summary", label: "Summary" },
-          { key: "trends", label: "Trends" },
-          { key: "comparison", label: "Comparison" },
-          { key: "pie", label: "By Category" },
-        ].map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setActiveTab(t.key)}
-            className={`px-4 py-2 rounded-xl font-semibold shadow ${
-              activeTab === t.key
-                ? "bg-indigo-600 text-white"
-                : theme === "dark"
-                ? "bg-gray-800 text-white"
-                : "bg-white"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Charts */}
-      <div className={`rounded-2xl p-6 shadow ${theme === "dark" ? "bg-gray-900" : "bg-white"}`}>
-        {activeTab === "summary" && (
-          monthlyTotals.length > 0 ? (
-            <ResponsiveContainer width="100%" height={window.innerWidth < 600 ? 250 : 420}>
-              <BarChart data={monthlyTotals} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={theme === "dark" ? "#333" : "#ddd"} />
-                <XAxis dataKey="month" stroke={theme === "dark" ? "#fff" : "#111"} />
-                <YAxis stroke={theme === "dark" ? "#fff" : "#111"} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: theme === "dark" ? "#111827" : "#ffffff",
-                    color: theme === "dark" ? "#fff" : "#111",
-                    borderRadius: 8,
-                    border: `1px solid ${theme === "dark" ? "#374151" : "#e5e7eb"}`,
-                  }}
-                />
-                <Legend />
-                <Bar dataKey="total" name="Expenses" fill="#6366f1" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="opacity-70 text-center">No expense data to display.</p>
-          )
+ 
+        {/* Charts */}
+        <motion.div layout style={{ display: "grid", gap: "20px", marginBottom: "24px" }}>
+ 
+          {activeTab === "summary" && (
+            <motion.div layout style={glassCard(dark)}>
+              {monthlyTotals.length > 0 ? (
+                <ResponsiveContainer width="100%" height={window.innerWidth < 600 ? 250 : 420}>
+                  <BarChart data={monthlyTotals} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"} />
+                    <XAxis dataKey="month" stroke={dark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)"} />
+                    <YAxis stroke={dark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)"} />
+                    <Tooltip contentStyle={{ backgroundColor: dark ? "rgba(20,20,40,0.95)" : "#fff", border: "1px solid rgba(99,102,241,0.3)", borderRadius: "12px", color: dark ? "#fff" : "#000" }} />
+                    <Legend />
+                    <Bar dataKey="total" name="Expenses" fill="#6366f1" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : <p style={{ opacity: 0.5, textAlign: "center", padding: "40px 0" }}>No expense data to display.</p>}
+            </motion.div>
+          )}
+ 
+          {activeTab === "trends" && (
+            <motion.div layout style={glassCard(dark)}>
+              {monthlyTotals.length > 0 ? (
+                <ResponsiveContainer width="100%" height={window.innerWidth < 600 ? 250 : 420}>
+                  <LineChart data={monthlyTotals} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"} />
+                    <XAxis dataKey="month" stroke={dark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)"} />
+                    <YAxis stroke={dark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)"} />
+                    <Tooltip contentStyle={{ backgroundColor: dark ? "rgba(20,20,40,0.95)" : "#fff", border: "1px solid rgba(99,102,241,0.3)", borderRadius: "12px", color: dark ? "#fff" : "#000" }} />
+                    <Legend />
+                    <Line type="monotone" dataKey="total" name="Expenses" stroke="#60a5fa" strokeWidth={3} dot />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : <p style={{ opacity: 0.5, textAlign: "center", padding: "40px 0" }}>No expense data to display.</p>}
+            </motion.div>
+          )}
+ 
+          {activeTab === "comparison" && (
+            <motion.div layout style={glassCard(dark)}>
+              {compareMode ? (
+                compareData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={window.innerWidth < 600 ? 250 : 420}>
+                    <BarChart data={compareData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"} />
+                      <XAxis dataKey="month" stroke={dark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)"} />
+                      <YAxis stroke={dark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)"} />
+                      <Tooltip contentStyle={{ backgroundColor: dark ? "rgba(20,20,40,0.95)" : "#fff", border: "1px solid rgba(99,102,241,0.3)", borderRadius: "12px", color: dark ? "#fff" : "#000" }} />
+                      <Legend />
+                      <Bar dataKey="current" name="Period A" fill="#34d399" radius={[8, 8, 0, 0]} />
+                      <Bar dataKey="compare" name="Period B" fill="#f87171" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : <p style={{ opacity: 0.5, textAlign: "center", padding: "40px 0" }}>No comparison data. Adjust date ranges.</p>
+              ) : <p style={{ opacity: 0.5, textAlign: "center", padding: "40px 0" }}>Enable Compare in Filters to view side-by-side periods.</p>}
+            </motion.div>
+          )}
+ 
+          {activeTab === "pie" && (
+            <motion.div layout style={glassCard(dark)}>
+              {filtered.length > 0 ? (
+                <ResponsiveContainer width="100%" height={window.innerWidth < 600 ? 300 : 450}>
+                  <PieChart>
+                    <Pie
+                      data={Object.entries(filtered.reduce((acc, e) => {
+                        acc[e.category] = (acc[e.category] || 0) + Number(e.amount);
+                        return acc;
+                      }, {})).map(([name, value]) => ({ name, value }))}
+                      cx="50%" cy="50%"
+                      outerRadius={window.innerWidth < 600 ? 80 : 150}
+                      dataKey="value"
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {["#6366f1", "#34d399", "#f87171", "#f59e0b", "#60a5fa", "#a78bfa", "#10b981"].map((color, index) => (
+                        <Cell key={index} fill={color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => formatCurrency(value, userCurrency)} contentStyle={{ backgroundColor: dark ? "rgba(20,20,40,0.95)" : "#fff", border: "1px solid rgba(99,102,241,0.3)", borderRadius: "12px", color: dark ? "#fff" : "#000" }} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : <p style={{ opacity: 0.5, textAlign: "center", padding: "40px 0" }}>No expense data to display.</p>}
+            </motion.div>
+          )}
+ 
+        </motion.div>
+ 
+        {/* Share Modal */}
+        {showShareModal && (
+          <div style={{
+            position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)",
+            display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000,
+          }}>
+            <div style={{ ...glassCard(dark), minWidth: "350px", maxWidth: "95vw" }}>
+              <h4 style={{ marginBottom: "16px", fontSize: "18px", fontWeight: "700" }}>📤 Share Report via Email</h4>
+              <input
+                type="email"
+                placeholder="Enter email address"
+                value={shareEmail}
+                onChange={e => setShareEmail(e.target.value)}
+                style={{ ...inputBase(dark), width: "100%", boxSizing: "border-box", marginBottom: "12px" }}
+              />
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button onClick={handleShareReport} disabled={shareSending} style={{
+                  ...buttonBase("linear-gradient(135deg, #6366f1, #8b5cf6)", "#fff"),
+                  flex: 1, boxShadow: "0 4px 12px rgba(99,102,241,0.4)",
+                }}>
+                  {shareSending ? "Sending..." : "Send"}
+                </button>
+                <button onClick={() => setShowShareModal(false)} style={{
+                  ...buttonBase(dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", dark ? "#fff" : "#000"),
+                  flex: 1,
+                }}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
         )}
-
-        {activeTab === "trends" && (
-          monthlyTotals.length > 0 ? (
-            <ResponsiveContainer width="100%" height={window.innerWidth < 600 ? 250 : 420}>
-              <LineChart data={monthlyTotals} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={theme === "dark" ? "#333" : "#ddd"} />
-                <XAxis dataKey="month" stroke={theme === "dark" ? "#fff" : "#111"} />
-                <YAxis stroke={theme === "dark" ? "#fff" : "#111"} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: theme === "dark" ? "#111827" : "#ffffff",
-                    color: theme === "dark" ? "#fff" : "#111",
-                    borderRadius: 8,
-                    border: `1px solid ${theme === "dark" ? "#374151" : "#e5e7eb"}`,
-                  }}
-                />
-                <Legend />
-                <Line type="monotone" dataKey="total" name="Expenses" stroke="#60a5fa" strokeWidth={3} dot />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="opacity-70 text-center">No expense data to display.</p>
-          )
-        )}
-
-        {activeTab === "comparison" && (
-          compareMode ? (
-            compareData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={window.innerWidth < 600 ? 250 : 420}>
-                <BarChart data={compareData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={theme === "dark" ? "#333" : "#ddd"} />
-                  <XAxis dataKey="month" stroke={theme === "dark" ? "#fff" : "#111"} />
-                  <YAxis stroke={theme === "dark" ? "#fff" : "#111"} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: theme === "dark" ? "#111827" : "#ffffff",
-                      color: theme === "dark" ? "#fff" : "#111",
-                      borderRadius: 8,
-                      border: `1px solid ${theme === "dark" ? "#374151" : "#e5e7eb"}`,
-                    }}
-                  />
-                  <Legend />
-                  <Bar dataKey="current" name="Period A" fill="#34d399" radius={[8, 8, 0, 0]} />
-                  <Bar dataKey="compare" name="Period B" fill="#f87171" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="opacity-70 text-center">No comparison data. Adjust date ranges.</p>
-            )
-          ) : (
-            <p className="opacity-70 text-center">Enable Compare in Filters to view side-by-side periods.</p>
-          )
-        )}
-        {activeTab === "pie" && (
-  filtered.length > 0 ? (
-    <ResponsiveContainer width="100%" height={window.innerWidth < 600 ? 300 : 450}>
-      <PieChart>
-        <Pie
-          data={Object.entries(
-            filtered.reduce((acc, e) => {
-              acc[e.category] = (acc[e.category] || 0) + Number(e.amount);
-              return acc;
-            }, {})
-          ).map(([name, value]) => ({ name, value }))}
-          cx="50%"
-          cy="50%"
-          outerRadius={window.innerWidth < 600 ? 80 : 150}
-          dataKey="value"
-          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-        >
-          {["#6366f1","#34d399","#f87171","#f59e0b","#60a5fa","#a78bfa","#10b981"].map((color, index) => (
-            <Cell key={index} fill={color} />
-          ))}
-        </Pie>
-        <Tooltip formatter={(value) => formatCurrency(value, userCurrency)} />
-        <Legend />
-      </PieChart>
-    </ResponsiveContainer>
-  ) : (
-    <p className="opacity-70 text-center">No expense data to display.</p>
-  )
-)}
-{showShareModal && (
-  <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000 }}>
-    <div className={`rounded-2xl p-6 shadow ${theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-gray-900"}`} style={{ minWidth: "350px" }}>
-      <h4 className="text-xl font-bold mb-4">📤 Share Report via Email</h4>
-      <input
-        type="email"
-        placeholder="Enter email address"
-        value={shareEmail}
-        onChange={e => setShareEmail(e.target.value)}
-        className={`w-full px-4 py-2 rounded-lg border mb-4 ${theme === "dark" ? "bg-gray-800 text-white border-gray-600" : "bg-white border-gray-300"}`}
-      />
-      <div className="flex gap-3">
-        <button
-          onClick={handleShareReport}
-          disabled={shareSending}
-          className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold"
-        >
-          {shareSending ? "Sending..." : "Send"}
-        </button>
-        <button
-          onClick={() => setShowShareModal(false)}
-          className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold"
-        >
-          Cancel
-        </button>
+ 
+        {/* Drawer */}
+        <FilterDrawer
+          theme={theme}
+          isOpen={isDrawerOpen}
+          onClose={() => setIsDrawerOpen(false)}
+          categories={categories}
+          selectedCategories={selectedCategories}
+          setSelectedCategories={setSelectedCategories}
+          dateRange={dateRange}
+          setDateRange={setDateRange}
+          compareMode={compareMode}
+          setCompareMode={setCompareMode}
+          compareRange={compareRange}
+          setCompareRange={setCompareRange}
+          onReset={resetFilters}
+          onApply={applyFilters}
+          savedFilters={savedFilters}
+          onSaveFilter={saveCurrentFilter}
+          onLoadFilter={loadFilterByName}
+          onDeleteSaved={deleteSavedFilter}
+        />
+ 
       </div>
-    </div>
-  </div>
-)}
-      </div>
-      
-      {/* Drawer */}
-      <FilterDrawer
-        theme={theme}
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        categories={categories}
-        selectedCategories={selectedCategories}
-        setSelectedCategories={setSelectedCategories}
-        dateRange={dateRange}
-        setDateRange={setDateRange}
-        compareMode={compareMode}
-        setCompareMode={setCompareMode}
-        compareRange={compareRange}
-        setCompareRange={setCompareRange}
-        onReset={resetFilters}
-        onApply={applyFilters}
-        savedFilters={savedFilters}
-        onSaveFilter={saveCurrentFilter}
-        onLoadFilter={loadFilterByName}
-        onDeleteSaved={deleteSavedFilter}
-      />
     </div>
   );
 }

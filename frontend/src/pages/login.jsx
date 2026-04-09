@@ -8,8 +8,8 @@ function Login({ setUser, setTheme, setCurrency }) {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const theme = localStorage.getItem("theme") || "light";
+  const dark = theme === "dark";
 
-  // Auto-login if token already exists
   useEffect(() => {
     const token = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user_logged_in");
@@ -25,16 +25,13 @@ function Login({ setUser, setTheme, setCurrency }) {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
       const res = await fetch("https://expense-tracker-3dmz.onrender.com/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-
       const data = await res.json();
-
       if (!res.ok) {
         if (data.message?.includes("verify")) {
           navigate("/verify-email-request");
@@ -43,17 +40,12 @@ function Login({ setUser, setTheme, setCurrency }) {
         }
         return;
       }
-
       localStorage.setItem("token", data.token);
       localStorage.setItem("user_logged_in", JSON.stringify(data.user));
       setUser(data.user);
       setCurrency(data.user.currency || "USD");
-
       const storedTheme = localStorage.getItem("theme") || "light";
       setTheme(storedTheme);
-      document.body.className =
-        storedTheme === "dark" ? "bg-gray-900 text-white" : "bg-white text-black";
-
       navigate("/dashboard");
     } catch (err) {
       setError("Server error. Make sure backend is running.");
@@ -62,97 +54,159 @@ function Login({ setUser, setTheme, setCurrency }) {
     }
   };
 
-    const inputStyle = {
+  const inputStyle = {
     width: "100%",
-    margin: "10px 0",
-    padding: "10px",
-    borderRadius: "6px",
-    border: "1px solid #ccc",
-    backgroundColor: theme === "dark" ? "#2a2a2a" : "#fff",
-    color: theme === "dark" ? "#fff" : "#000",
+    padding: "12px 14px",
+    borderRadius: "10px",
+    border: dark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(0,0,0,0.1)",
+    backgroundColor: dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+    color: dark ? "#fff" : "#000",
+    outline: "none",
+    fontSize: "14px",
+    boxSizing: "border-box",
+    marginBottom: "12px",
   };
 
   return (
-    <div
-      style={{
-      maxWidth: "400px",
-      margin: window.innerWidth < 600 ? "20px auto" : "50px auto",
+    <div style={{
+      background: dark
+        ? "linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #0f0f1a 100%)"
+        : "linear-gradient(135deg, #f0f4ff 0%, #fafafa 50%, #f0f4ff 100%)",
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
       padding: "20px",
-      border: "1px solid #ddd",
-      borderRadius: "10px",
-      boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-      backgroundColor: theme === "dark" ? "#1e1e1e" : "#fff",
-      color: theme === "dark" ? "#fff" : "#000",
+      position: "relative",
+    }}>
 
-      }}
-    >
-      <h2 style={{ textAlign: "center" }}>Login</h2>
-      {error && <p style={{ color: "red", textAlign: "center" }}>{error}</p>}
+      {/* Ambient blobs */}
+      {dark && (
+        <>
+          <div style={{
+            position: "fixed", top: "-100px", left: "-100px", width: "400px", height: "400px",
+            borderRadius: "50%", background: "radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)",
+            pointerEvents: "none", zIndex: 0,
+          }} />
+          <div style={{
+            position: "fixed", bottom: "-100px", right: "-100px", width: "500px", height: "500px",
+            borderRadius: "50%", background: "radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%)",
+            pointerEvents: "none", zIndex: 0,
+          }} />
+        </>
+      )}
 
-      <form onSubmit={handleLogin}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={inputStyle}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={inputStyle}
-        />
-        
-        <button
-          type="submit"
-          disabled={loading}
+      <div style={{
+        background: dark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.85)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        borderRadius: "20px",
+        border: dark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(0,0,0,0.07)",
+        boxShadow: dark ? "0 8px 32px rgba(0,0,0,0.4)" : "0 8px 32px rgba(0,0,0,0.08)",
+        padding: "36px",
+        width: "100%",
+        maxWidth: "400px",
+        position: "relative",
+        zIndex: 1,
+        color: dark ? "#fff" : "#111",
+      }}>
+
+        {/* Logo / Title */}
+        <div style={{ textAlign: "center", marginBottom: "28px" }}>
+          <div style={{ fontSize: "36px", marginBottom: "8px" }}>💸</div>
+          <h2 style={{ fontSize: "24px", fontWeight: "700", letterSpacing: "-0.02em", margin: 0 }}>
+            Welcome back
+          </h2>
+          <p style={{ fontSize: "14px", opacity: 0.5, marginTop: "6px" }}>
+            Sign in to your account
+          </p>
+        </div>
+
+        {error && (
+          <div style={{
+            padding: "10px 14px", borderRadius: "10px",
+            background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)",
+            color: "#ef4444", fontSize: "13px", marginBottom: "16px", textAlign: "center",
+          }}>
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleLogin}>
+          <label style={{ fontSize: "11px", fontWeight: "600", letterSpacing: "0.08em", textTransform: "uppercase", opacity: 0.5, display: "block", marginBottom: "6px" }}>
+            Email
+          </label>
+          <input
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={inputStyle}
+          />
+
+          <label style={{ fontSize: "11px", fontWeight: "600", letterSpacing: "0.08em", textTransform: "uppercase", opacity: 0.5, display: "block", marginBottom: "6px" }}>
+            Password
+          </label>
+          <input
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            style={{ ...inputStyle, marginBottom: "20px" }}
+          />
+
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: "100%", padding: "12px",
+              background: loading ? "rgba(99,102,241,0.5)" : "linear-gradient(135deg, #6366f1, #8b5cf6)",
+              color: "#fff", border: "none", borderRadius: "10px",
+              cursor: loading ? "not-allowed" : "pointer",
+              fontWeight: "600", fontSize: "14px",
+              boxShadow: loading ? "none" : "0 4px 15px rgba(99,102,241,0.4)",
+              transition: "opacity 0.2s",
+            }}
+            onMouseOver={(e) => !loading && (e.currentTarget.style.opacity = "0.85")}
+            onMouseOut={(e) => (e.currentTarget.style.opacity = "1")}
+          >
+            {loading ? "Signing in..." : "Sign In"}
+          </button>
+        </form>
+
+        <div style={{ margin: "20px 0", display: "flex", alignItems: "center", gap: "10px" }}>
+          <div style={{ flex: 1, height: "1px", background: dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)" }} />
+          <span style={{ fontSize: "12px", opacity: 0.4 }}>or</span>
+          <div style={{ flex: 1, height: "1px", background: dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)" }} />
+        </div>
+
+        <a
+          href="https://expense-tracker-3dmz.onrender.com/api/auth/google"
           style={{
-            width: "100%",
-            padding: "12px",
-            background: loading ? "#aaa" : "#3498db",
-            color: "#fff",
-            border: "none",
-            borderRadius: "6px",
-            cursor: loading ? "not-allowed" : "pointer",
-            fontWeight: "bold",
-            marginTop: "10px",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+            width: "100%", padding: "12px",
+            background: dark ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.9)",
+            color: dark ? "#fff" : "#444",
+            border: dark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(0,0,0,0.1)",
+            borderRadius: "10px", cursor: "pointer",
+            fontWeight: "600", fontSize: "14px",
+            textDecoration: "none",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            boxSizing: "border-box",
           }}
         >
-          {loading ? "Logging in..." : "Login"}
-        </button>
-      </form>
+          🔵 Continue with Google
+        </a>
 
-      <div style={{ marginTop: "15px", textAlign: "center" }}>
-  <hr style={{ marginBottom: "15px" }} />
-  
-    <a href="https://expense-tracker-3dmz.onrender.com/api/auth/google"
-    style={{
-      display: "inline-block",
-      width: "100%",
-      padding: "12px",
-      background: "#fff",
-      color: "#444",
-      border: "1px solid #ddd",
-      borderRadius: "6px",
-      cursor: "pointer",
-      fontWeight: "bold",
-      textDecoration: "none",
-      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-    }}
-  >
-    🔵 Continue with Google
-  </a>
-</div>
-      <p style={{ marginTop: "15px", textAlign: "center" }}>
-        Don't have an account?{" "}
-        <Link to="/register" style={{ color: "#3498db" }}>
-          Register
-        </Link>
-      </p>
+        <p style={{ marginTop: "20px", textAlign: "center", fontSize: "14px", opacity: 0.6 }}>
+          Don't have an account?{" "}
+          <Link to="/register" style={{ color: "#6366f1", fontWeight: "600", textDecoration: "none" }}>
+            Register
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

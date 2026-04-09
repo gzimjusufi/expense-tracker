@@ -1,10 +1,6 @@
 import React, { useMemo } from "react";
 import { formatCurrency } from "../services/currency";
 
-// -------------------------
-// Helpers
-// -------------------------
-
 const monthKey = (dateStr) => {
   const d = new Date(dateStr);
   if (Number.isNaN(d.getTime())) return null;
@@ -19,11 +15,30 @@ const monthLabel = (key) => {
   return d.toLocaleString("default", { month: "short", year: "numeric" });
 };
 
-// -------------------------
-// Insight Component
-// -------------------------
 export default function Insight({ expenses, theme = "dark", monthlyBudget, currency = "USD" }) {
-  // Compute monthly totals
+  const dark = theme === "dark";
+
+  const card = {
+    background: dark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.85)",
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
+    borderRadius: "16px",
+    border: dark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(0,0,0,0.07)",
+    boxShadow: dark ? "0 8px 32px rgba(0,0,0,0.4)" : "0 8px 32px rgba(0,0,0,0.08)",
+    padding: "20px",
+    marginBottom: "16px",
+  };
+
+  const labelStyle = {
+    fontSize: "11px",
+    fontWeight: "600",
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    opacity: 0.5,
+    marginBottom: "8px",
+    display: "block",
+  };
+
   const monthlyTotals = useMemo(() => {
     const totals = {};
     expenses.forEach((e) => {
@@ -34,41 +49,35 @@ export default function Insight({ expenses, theme = "dark", monthlyBudget, curre
     return totals;
   }, [expenses]);
 
-  // Predict next month expenses (simple linear regression)
   const nextMonthPrediction = useMemo(() => {
     const keys = Object.keys(monthlyTotals).sort();
     if (keys.length < 2) return null;
-
     const values = keys.map((k) => monthlyTotals[k]);
     const n = values.length;
     const xSum = Array.from({ length: n }, (_, i) => i).reduce((a, b) => a + b, 0);
     const ySum = values.reduce((a, b) => a + b, 0);
     const xySum = values.reduce((sum, y, i) => sum + i * y, 0);
     const x2Sum = Array.from({ length: n }, (_, i) => i * i).reduce((a, b) => a + b, 0);
-
     const slope = (n * xySum - xSum * ySum) / (n * x2Sum - xSum * xSum);
     const intercept = (ySum - slope * xSum) / n;
-
-    return intercept + slope * n; // Predict next month
+    return intercept + slope * n;
   }, [monthlyTotals]);
 
-  // Budget check
   let budgetStatus = "";
-  let progressColor = "#2ecc71";
+  let progressColor = "#10b981";
   if (monthlyBudget && nextMonthPrediction) {
     if (nextMonthPrediction >= monthlyBudget) {
       budgetStatus = "⚠️ Predicted to exceed your budget next month!";
       progressColor = "#e74c3c";
     } else if (nextMonthPrediction >= monthlyBudget * 0.75) {
       budgetStatus = "⚠️ Predicted to be close to your budget next month!";
-      progressColor = "#f39c12";
+      progressColor = "#f59e0b";
     } else {
       budgetStatus = "✅ Predicted to be within your budget next month.";
-      progressColor = "#2ecc71";
+      progressColor = "#10b981";
     }
   }
 
-  // Detect unusual spikes (20% more than previous month)
   const spikes = useMemo(() => {
     const keys = Object.keys(monthlyTotals).sort();
     const results = [];
@@ -87,54 +96,72 @@ export default function Insight({ expenses, theme = "dark", monthlyBudget, curre
   }, [monthlyTotals]);
 
   return (
-  <div
-    style={{
-      backgroundColor: theme === "dark" ? "#121212" : "#f5f5f5",
-      color: theme === "dark" ? "#fff" : "#000",
-      padding: "10px 15px",
-      minHeight: "auto", // <-- changed from 100vh
-    }}
-  >
-    <h2 style={{ marginBottom: 10 }}>AI-Powered Expense Insights</h2>
+    <div style={{ marginBottom: "8px" }}>
+      <div style={{ ...labelStyle, marginBottom: "12px" }}>🤖 AI-Powered Expense Insights</div>
 
-    {nextMonthPrediction && (
-      <div
-        style={{
-          backgroundColor: theme === "dark" ? "#1e1e1e" : "#fff",
-          padding: "10px",
-          borderRadius: "10px",
-          marginBottom: "15px",
-          borderLeft: `5px solid ${progressColor}`,
-        }}
-      >
-        <h4>Next Month Prediction</h4>
-        <p>Predicted Expenses: {formatCurrency(nextMonthPrediction, currency)}</p>
-        <p style={{ color: progressColor }}>{budgetStatus}</p>
-      </div>
-    )}
+      <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+        {/* Next Month Prediction */}
+        {nextMonthPrediction && (
+          <div style={{
+            ...card,
+            flex: "1 1 220px",
+            borderLeft: `3px solid ${progressColor}`,
+            marginBottom: 0,
+          }}>
+            <div style={labelStyle}>Next Month Prediction</div>
+            <div style={{
+              fontSize: "22px", fontWeight: "700",
+              letterSpacing: "-0.02em", color: progressColor, marginBottom: "6px",
+            }}>
+              {formatCurrency(nextMonthPrediction, currency)}
+            </div>
+            <div style={{ fontSize: "13px", color: progressColor, fontWeight: "500" }}>
+              {budgetStatus}
+            </div>
+          </div>
+        )}
 
-    {spikes.length > 0 ? (
-      <div
-        style={{
-          backgroundColor: theme === "dark" ? "#1e1e1e" : "#fff",
-          padding: "10px",
-          borderRadius: "10px",
-          marginBottom: "15px",
-        }}
-      >
-        <h4>Unusual Spending Spikes</h4>
-        <ul>
-          {spikes.map((s, idx) => (
-            <li key={idx}>
-              {s.month}: Spent {formatCurrency(s.increase, currency)} more than previous month (
-              {s.percent.toFixed(0)}%)
-            </li>
-          ))}
-        </ul>
+        {/* Spending Spikes */}
+        <div style={{
+          ...card,
+          flex: "1 1 220px",
+          borderLeft: spikes.length > 0 ? "3px solid #f59e0b" : "3px solid #10b981",
+          marginBottom: 0,
+        }}>
+          <div style={labelStyle}>Spending Spikes</div>
+          {spikes.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {spikes.map((s, idx) => (
+                <div key={idx} style={{
+                  display: "flex", justifyContent: "space-between", alignItems: "center",
+                  padding: "8px 12px",
+                  background: dark ? "rgba(245,158,11,0.1)" : "rgba(245,158,11,0.08)",
+                  borderRadius: "8px",
+                  border: "1px solid rgba(245,158,11,0.2)",
+                }}>
+                  <div>
+                    <div style={{ fontWeight: "600", fontSize: "13px" }}>{s.month}</div>
+                    <div style={{ fontSize: "11px", opacity: 0.6 }}>
+                      +{formatCurrency(s.increase, currency)}
+                    </div>
+                  </div>
+                  <div style={{
+                    fontSize: "13px", fontWeight: "700", color: "#f59e0b",
+                    background: "rgba(245,158,11,0.15)", padding: "4px 8px",
+                    borderRadius: "6px",
+                  }}>
+                    +{s.percent.toFixed(0)}%
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ fontSize: "13px", color: "#10b981", fontWeight: "500" }}>
+              ✅ No significant spending spikes detected.
+            </div>
+          )}
+        </div>
       </div>
-    ) : (
-      <p style={{ opacity: 0.7 }}>No significant spending spikes detected.</p>
-    )}
-  </div>
-);
+    </div>
+  );
 }

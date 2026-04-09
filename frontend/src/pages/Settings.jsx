@@ -1,5 +1,31 @@
 import React, { useState, useEffect } from "react";
 
+const glassCard = {
+  background: "rgba(255,255,255,0.04)",
+  backdropFilter: "blur(20px)",
+  WebkitBackdropFilter: "blur(20px)",
+  borderRadius: "16px",
+  border: "1px solid rgba(255,255,255,0.08)",
+  boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+  padding: "24px",
+  marginBottom: "20px",
+  maxWidth: "500px",
+  width: "100%",
+};
+
+const lightCard = {
+  background: "rgba(255,255,255,0.85)",
+  backdropFilter: "blur(20px)",
+  WebkitBackdropFilter: "blur(20px)",
+  borderRadius: "16px",
+  border: "1px solid rgba(0,0,0,0.07)",
+  boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
+  padding: "24px",
+  marginBottom: "20px",
+  maxWidth: "500px",
+  width: "100%",
+};
+
 const Settings = ({ theme, setTheme, user, setUser, setCurrency }) => {
   const [profile, setProfile] = useState({
     name: "",
@@ -7,8 +33,33 @@ const Settings = ({ theme, setTheme, user, setUser, setCurrency }) => {
     avatar: null,
     currency: "USD",
   });
-
   const [successMsg, setSuccessMsg] = useState("");
+
+  const dark = theme === "dark";
+  const card = dark ? glassCard : lightCard;
+
+  const labelStyle = {
+    fontSize: "11px",
+    fontWeight: "600",
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    opacity: 0.5,
+    marginBottom: "8px",
+    display: "block",
+  };
+
+  const inputStyle = {
+    padding: "10px 14px",
+    borderRadius: "10px",
+    border: dark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(0,0,0,0.1)",
+    backgroundColor: dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+    color: dark ? "#fff" : "#000",
+    outline: "none",
+    fontSize: "14px",
+    width: "100%",
+    boxSizing: "border-box",
+  };
+
   // Fetch latest profile from MongoDB on mount
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -42,7 +93,6 @@ const Settings = ({ theme, setTheme, user, setUser, setCurrency }) => {
 
   const handleSaveProfile = async () => {
     if (!user?.email) return;
-
     try {
       const token = localStorage.getItem("token");
       const body = { name: profile.name };
@@ -52,10 +102,7 @@ const Settings = ({ theme, setTheme, user, setUser, setCurrency }) => {
 
       const res = await fetch("https://expense-tracker-3dmz.onrender.com/api/auth/update-profile", {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(body),
       });
 
@@ -76,167 +123,179 @@ const Settings = ({ theme, setTheme, user, setUser, setCurrency }) => {
       localStorage.setItem(`profile_${user.email}`, JSON.stringify(updated));
       setUser(updated);
       if (profile.currency) setCurrency(profile.currency);
-
       setSuccessMsg("✅ Profile updated successfully!");
-setTimeout(() => setSuccessMsg(""), 3000);
-  } catch (err) {
-  console.error("Profile save error:", err);
-  setSuccessMsg("✅ Profile updated successfully!");
-  setTimeout(() => setSuccessMsg(""), 3000);
-}
+      setTimeout(() => setSuccessMsg(""), 3000);
+    } catch (err) {
+      console.error("Profile save error:", err);
+      setSuccessMsg("✅ Profile updated successfully!");
+      setTimeout(() => setSuccessMsg(""), 3000);
+    }
   };
 
-  const handleInputChange = (e) => {
-    setProfile({ ...profile, [e.target.name]: e.target.value });
-  };
+  const handleInputChange = (e) => setProfile({ ...profile, [e.target.name]: e.target.value });
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfile({ ...profile, avatar: reader.result });
-      };
+      reader.onloadend = () => setProfile({ ...profile, avatar: reader.result });
       reader.readAsDataURL(file);
     }
   };
 
   const handleThemeChange = (e) => setTheme(e.target.value);
 
-  const pageStyle = {
-    backgroundColor: theme === "dark" ? "#121212" : "#f5f5f5",
-    color: theme === "dark" ? "#fff" : "#000",
-    minHeight: "100vh",
-    padding: window.innerWidth < 600 ? "15px" : "30px",
-  };
-
-  const cardStyle = {
-    background: theme === "dark" ? "#1e1e1e" : "#fff",
-    borderRadius: "14px",
-    padding: "25px",
-    maxWidth: "500px",
-    width: "100%",
-    marginBottom: "25px",
-    boxShadow: theme === "dark" ? "0 8px 25px rgba(0,0,0,0.6)" : "0 8px 25px rgba(0,0,0,0.1)",
-  };
-
-  const labelStyle = { fontSize: "14px", marginBottom: "6px", display: "block" };
-
-  const inputStyle = {
-    padding: "10px",
-    borderRadius: "8px",
-    border: theme === "dark" ? "1px solid #444" : "1px solid #ccc",
-    backgroundColor: theme === "dark" ? "#2a2a2a" : "#fff",
-    color: theme === "dark" ? "#fff" : "#000",
-    width: "100%",
-  };
-
-  const buttonStyle = {
-    padding: "12px",
-    background: theme === "dark" ? "#1abc9c" : "#3182ce",
-    color: "#fff",
-    border: "none",
-    borderRadius: "10px",
-    cursor: "pointer",
-    fontWeight: "bold",
-    width: "100%",
-    marginTop: "15px",
-  };
-
   return (
-    <div style={pageStyle}>
-      <h2>Settings</h2>
+    <div style={{
+      background: dark
+        ? "linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #0f0f1a 100%)"
+        : "linear-gradient(135deg, #f0f4ff 0%, #fafafa 50%, #f0f4ff 100%)",
+      color: dark ? "#fff" : "#111",
+      minHeight: "100vh",
+      padding: window.innerWidth < 600 ? "16px" : "24px",
+      position: "relative",
+    }}>
 
-      {/* Theme Card */}
-      <div style={cardStyle}>
-        <h3>Appearance</h3>
-        <label style={labelStyle}>Theme</label>
-        <select value={theme} onChange={handleThemeChange} style={inputStyle}>
-          <option value="light">🌞 Light</option>
-          <option value="dark">🌙 Dark</option>
-        </select>
-      </div>
+      {/* Ambient blobs */}
+      {dark && (
+        <>
+          <div style={{
+            position: "fixed", top: "-100px", left: "-100px", width: "400px", height: "400px",
+            borderRadius: "50%", background: "radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)",
+            pointerEvents: "none", zIndex: 0,
+          }} />
+          <div style={{
+            position: "fixed", bottom: "-100px", right: "-100px", width: "500px", height: "500px",
+            borderRadius: "50%", background: "radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%)",
+            pointerEvents: "none", zIndex: 0,
+          }} />
+        </>
+      )}
 
-      {/* Profile Card */}
-      <div style={cardStyle}>
-        <h3>Profile</h3>
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <h2 style={{ fontSize: "24px", fontWeight: "700", letterSpacing: "-0.02em", marginBottom: "24px" }}>
+          ⚙️ Settings
+        </h2>
 
-        {/* Avatar */}
-        <div style={{ textAlign: "center", marginBottom: "20px" }}>
-          {profile.avatar ? (
-            <img
-              src={profile.avatar}
-              alt="Profile"
-              style={{ width: "90px", height: "90px", borderRadius: "50%", objectFit: "cover", marginBottom: "10px" }}
-            />
-          ) : (
-            <div style={{
-              width: "90px", height: "90px", borderRadius: "50%",
-              backgroundColor: theme === "dark" ? "#333" : "#e5e7eb",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: "32px", marginBottom: "10px",
-            }}>
-              👤
-            </div>
-          )}
-          <input type="file" accept="image/*" onChange={handleAvatarChange} />
+        {/* Appearance Card */}
+        <div style={{ ...card, borderTop: "2px solid #6366f1" }}>
+          <div style={{ fontSize: "11px", fontWeight: "600", letterSpacing: "0.08em", textTransform: "uppercase", opacity: 0.5, marginBottom: "16px" }}>
+            Appearance
+          </div>
+          <label style={labelStyle}>Theme</label>
+          <select value={theme} onChange={handleThemeChange} style={inputStyle}>
+            <option value="light">🌞 Light</option>
+            <option value="dark">🌙 Dark</option>
+          </select>
         </div>
 
-        <label style={labelStyle}>Preferred Currency</label>
-        <select
-          name="currency"
-          value={profile.currency || "USD"}
-          onChange={(e) => setProfile({ ...profile, currency: e.target.value })}
-          style={inputStyle}
-        >
-          <option value="USD">🇺🇸 USD - US Dollar</option>
-          <option value="EUR">🇪🇺 EUR - Euro</option>
-          <option value="GBP">🇬🇧 GBP - British Pound</option>
-          <option value="MKD">🇲🇰 MKD - Macedonian Denar</option>
-          <option value="CHF">🇨🇭 CHF - Swiss Franc</option>
-          <option value="JPY">🇯🇵 JPY - Japanese Yen</option>
-          <option value="CAD">🇨🇦 CAD - Canadian Dollar</option>
-          <option value="AUD">🇦🇺 AUD - Australian Dollar</option>
-        </select>
-        <br /><br />
+        {/* Profile Card */}
+        <div style={{ ...card, borderTop: "2px solid #10b981" }}>
+          <div style={{ fontSize: "11px", fontWeight: "600", letterSpacing: "0.08em", textTransform: "uppercase", opacity: 0.5, marginBottom: "20px" }}>
+            Profile
+          </div>
 
-        <label style={labelStyle}>Full Name</label>
-        <input
-          type="text"
-          name="name"
-          value={profile.name}
-          onChange={handleInputChange}
-          style={inputStyle}
-        />
-        <br /><br />
+          {/* Avatar */}
+          <div style={{ textAlign: "center", marginBottom: "24px" }}>
+            {profile.avatar ? (
+              <img
+                src={profile.avatar}
+                alt="Profile"
+                style={{
+                  width: "90px", height: "90px", borderRadius: "50%",
+                  objectFit: "cover", marginBottom: "12px",
+                  border: "3px solid rgba(99,102,241,0.5)",
+                  boxShadow: "0 0 20px rgba(99,102,241,0.3)",
+                  display: "block", margin: "0 auto 12px",
+                }}
+              />
+            ) : (
+              <div style={{
+                width: "90px", height: "90px", borderRadius: "50%",
+                background: dark ? "rgba(99,102,241,0.15)" : "rgba(99,102,241,0.08)",
+                border: "3px solid rgba(99,102,241,0.3)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "32px", margin: "0 auto 12px",
+              }}>
+                👤
+              </div>
+            )}
+            <label style={{
+              display: "inline-block", padding: "8px 16px",
+              background: dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)",
+              border: dark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(0,0,0,0.1)",
+              borderRadius: "10px", cursor: "pointer", fontSize: "13px",
+              fontWeight: "600", transition: "opacity 0.2s",
+            }}>
+              📷 Change Photo
+              <input type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: "none" }} />
+            </label>
+          </div>
 
-        <label style={labelStyle}>Password</label>
-        <input
-          type="password"
-          name="password"
-          value={profile.password}
-          onChange={handleInputChange}
-          placeholder="Leave blank to keep current password"
-          style={inputStyle}
-        />
+          <label style={labelStyle}>Preferred Currency</label>
+          <select
+            name="currency"
+            value={profile.currency || "USD"}
+            onChange={(e) => setProfile({ ...profile, currency: e.target.value })}
+            style={{ ...inputStyle, marginBottom: "16px" }}
+          >
+            <option value="USD">🇺🇸 USD - US Dollar</option>
+            <option value="EUR">🇪🇺 EUR - Euro</option>
+            <option value="GBP">🇬🇧 GBP - British Pound</option>
+            <option value="MKD">🇲🇰 MKD - Macedonian Denar</option>
+            <option value="CHF">🇨🇭 CHF - Swiss Franc</option>
+            <option value="JPY">🇯🇵 JPY - Japanese Yen</option>
+            <option value="CAD">🇨🇦 CAD - Canadian Dollar</option>
+            <option value="AUD">🇦🇺 AUD - Australian Dollar</option>
+          </select>
 
-        <button style={buttonStyle} onClick={handleSaveProfile}>
-          Save Changes
-        </button>
-        {successMsg && (
-  <div style={{
-    marginTop: "12px",
-    padding: "10px",
-    backgroundColor: "#d1fae5",
-    color: "#065f46",
-    borderRadius: "8px",
-    textAlign: "center",
-    fontSize: "14px",
-    fontWeight: "500",
-  }}>
-    {successMsg}
-  </div>
-)}
+          <label style={labelStyle}>Full Name</label>
+          <input
+            type="text"
+            name="name"
+            value={profile.name}
+            onChange={handleInputChange}
+            style={{ ...inputStyle, marginBottom: "16px" }}
+          />
+
+          <label style={labelStyle}>Password</label>
+          <input
+            type="password"
+            name="password"
+            value={profile.password}
+            onChange={handleInputChange}
+            placeholder="Leave blank to keep current password"
+            style={{ ...inputStyle, marginBottom: "20px" }}
+          />
+
+          <button
+            onClick={handleSaveProfile}
+            style={{
+              width: "100%", padding: "12px",
+              background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+              color: "#fff", border: "none", borderRadius: "10px",
+              cursor: "pointer", fontWeight: "600", fontSize: "14px",
+              boxShadow: "0 4px 15px rgba(99,102,241,0.4)",
+              transition: "opacity 0.2s",
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.opacity = "0.85")}
+            onMouseOut={(e) => (e.currentTarget.style.opacity = "1")}
+          >
+            Save Changes
+          </button>
+
+          {successMsg && (
+            <div style={{
+              marginTop: "12px", padding: "12px",
+              background: "rgba(16,185,129,0.15)",
+              border: "1px solid rgba(16,185,129,0.3)",
+              color: "#10b981", borderRadius: "10px",
+              textAlign: "center", fontSize: "14px", fontWeight: "600",
+            }}>
+              {successMsg}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
