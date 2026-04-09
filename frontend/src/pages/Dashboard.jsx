@@ -24,6 +24,36 @@ const categoryColors = {
   Other: "#95a5a6",
 };
 
+const glassCard = {
+  background: "rgba(255,255,255,0.04)",
+  backdropFilter: "blur(20px)",
+  WebkitBackdropFilter: "blur(20px)",
+  borderRadius: "16px",
+  border: "1px solid rgba(255,255,255,0.08)",
+  boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+  padding: "20px",
+};
+
+const lightCard = {
+  background: "rgba(255,255,255,0.85)",
+  backdropFilter: "blur(20px)",
+  WebkitBackdropFilter: "blur(20px)",
+  borderRadius: "16px",
+  border: "1px solid rgba(0,0,0,0.07)",
+  boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
+  padding: "20px",
+};
+
+const inputBase = (dark) => ({
+  padding: "10px 14px",
+  borderRadius: "10px",
+  border: dark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(0,0,0,0.1)",
+  backgroundColor: dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+  color: dark ? "#fff" : "#000",
+  outline: "none",
+  fontSize: "14px",
+});
+
 export default function Dashboard({ theme, user, currency }) {
   const [expenses, setExpenses] = useState([]);
   const [filteredExpenses, setFilteredExpenses] = useState([]);
@@ -32,12 +62,12 @@ export default function Dashboard({ theme, user, currency }) {
   const [toDate, setToDate] = useState("");
   const [budget, setBudget] = useState(localStorage.getItem("monthlyBudget") || "");
 
-  // Flag to check if user is ready
+  const dark = theme === "dark";
   const isUserReady = !!user;
+  const card = dark ? glassCard : lightCard;
 
-  // Fetch expenses
   const fetchExpenses = async () => {
-    if (!isUserReady) return; // wait for user
+    if (!isUserReady) return;
     try {
       const token = localStorage.getItem("token");
       const res = await axios.get("https://expense-tracker-3dmz.onrender.com/api/expenses", {
@@ -57,9 +87,8 @@ export default function Dashboard({ theme, user, currency }) {
     }
   };
 
-  // Fetch budget
   const fetchBudget = async () => {
-    if (!isUserReady) return; // wait for user
+    if (!isUserReady) return;
     try {
       const token = localStorage.getItem("token");
       const res = await axios.get("https://expense-tracker-3dmz.onrender.com/api/budget", {
@@ -68,13 +97,11 @@ export default function Dashboard({ theme, user, currency }) {
       setBudget(res.data.monthlyBudget);
       localStorage.setItem("cachedBudget", res.data.monthlyBudget);
     } catch (err) {
-      console.error("Error fetching budget:", err);
       const cached = localStorage.getItem("cachedBudget");
       if (cached) setBudget(Number(cached));
     }
   };
 
-  // ✅ Single useEffect for fetching data when component mounts or user changes
   useEffect(() => {
     if (isUserReady) {
       fetchExpenses();
@@ -82,12 +109,10 @@ export default function Dashboard({ theme, user, currency }) {
     }
   }, [isUserReady]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Save budget in localStorage whenever updated
   useEffect(() => {
     if (budget) localStorage.setItem("monthlyBudget", budget);
   }, [budget]);
 
-  // Apply filters
   const applyFilters = () => {
     let temp = [...expenses];
     if (categoryFilter) temp = temp.filter((e) => e.category === categoryFilter);
@@ -96,60 +121,47 @@ export default function Dashboard({ theme, user, currency }) {
     setFilteredExpenses(temp);
   };
 
-  // Summary stats
   const totalExpenses = filteredExpenses.reduce((acc, e) => acc + e.amount, 0);
   const monthlyExpenses = filteredExpenses
     .filter((e) => new Date(e.date).getMonth() === new Date().getMonth())
     .reduce((acc, e) => acc + e.amount, 0);
   const highestExpense = filteredExpenses.reduce(
-    (acc, e) => (e.amount > acc ? e.amount : acc),
-    0
+    (acc, e) => (e.amount > acc ? e.amount : acc), 0
   );
 
-// Add these calculations after highestExpense:
+  const lastMonth = new Date().getMonth() - 1;
+  const lastMonthExpenses = expenses
+    .filter((e) => new Date(e.date).getMonth() === lastMonth)
+    .reduce((acc, e) => acc + e.amount, 0);
+  const monthChange = lastMonthExpenses > 0
+    ? ((monthlyExpenses - lastMonthExpenses) / lastMonthExpenses) * 100
+    : 0;
+  const daysInMonth = new Date().getDate();
+  const avgDailySpending = monthlyExpenses / daysInMonth;
+  const currentMonth = new Date().getMonth();
+  const categoryTotals = {};
+  expenses
+    .filter((e) => new Date(e.date).getMonth() === currentMonth)
+    .forEach((e) => {
+      categoryTotals[e.category] = (categoryTotals[e.category] || 0) + e.amount;
+    });
+  const topCategory = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])[0];
 
-// Last month expenses
-const lastMonth = new Date().getMonth() - 1;
-const lastMonthExpenses = expenses
-  .filter((e) => new Date(e.date).getMonth() === lastMonth)
-  .reduce((acc, e) => acc + e.amount, 0);
-
-// Month over month change
-const monthChange = lastMonthExpenses > 0
-  ? ((monthlyExpenses - lastMonthExpenses) / lastMonthExpenses) * 100
-  : 0;
-
-// Average daily spending this month
-const daysInMonth = new Date().getDate();
-const avgDailySpending = monthlyExpenses / daysInMonth;
-
-// Top category this month
-const currentMonth = new Date().getMonth();
-const categoryTotals = {};
-expenses
-  .filter((e) => new Date(e.date).getMonth() === currentMonth)
-  .forEach((e) => {
-    categoryTotals[e.category] = (categoryTotals[e.category] || 0) + e.amount;
-  });
-const topCategory = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])[0];
-
-  // Budget progress
   const budgetProgress = budget ? Math.min((monthlyExpenses / budget) * 100, 100) : 0;
   let budgetStatus = "";
-  let progressColor = "#2ecc71"; // green
+  let progressColor = "#2ecc71";
   if (budget) {
     if (monthlyExpenses >= budget) {
       budgetStatus = "⚠️ You have exceeded your budget!";
-      progressColor = "#e74c3c"; // red
+      progressColor = "#e74c3c";
     } else if (monthlyExpenses >= budget * 0.75) {
       budgetStatus = "⚠️ You're close to exceeding your budget!";
-      progressColor = "#f39c12"; // yellow
+      progressColor = "#f39c12";
     } else {
       budgetStatus = "✅ You're within your budget.";
     }
   }
 
-  // Chart data
   const chartData = [];
   const months = [
     ...new Set(
@@ -161,261 +173,260 @@ const topCategory = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])[0
   months.forEach((month) => {
     const monthData = { month };
     Object.keys(categoryColors).forEach((cat) => {
-      const oneTimeTotal = filteredExpenses
-        .filter(
-          (e) =>
-            e.category === cat &&
-            !e.recurring &&
-            new Date(e.date).toLocaleString("default", { month: "short", year: "numeric" }) === month
-        )
+      monthData[`${cat}_oneTime`] = filteredExpenses
+        .filter((e) => e.category === cat && !e.recurring &&
+          new Date(e.date).toLocaleString("default", { month: "short", year: "numeric" }) === month)
         .reduce((sum, e) => sum + e.amount, 0);
-
-      const recurringTotal = filteredExpenses
-        .filter(
-          (e) =>
-            e.category === cat &&
-            e.recurring &&
-            new Date(e.date).toLocaleString("default", { month: "short", year: "numeric" }) === month
-        )
+      monthData[`${cat}_recurring`] = filteredExpenses
+        .filter((e) => e.category === cat && e.recurring &&
+          new Date(e.date).toLocaleString("default", { month: "short", year: "numeric" }) === month)
         .reduce((sum, e) => sum + e.amount, 0);
-
-      monthData[`${cat}_oneTime`] = oneTimeTotal;
-      monthData[`${cat}_recurring`] = recurringTotal;
     });
     chartData.push(monthData);
   });
 
-  // Styles
   const pageStyle = {
-    backgroundColor: theme === "dark" ? "#121212" : "#f5f5f5",
-    color: theme === "dark" ? "#ffffff" : "#000000",
+    background: dark
+      ? "linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #0f0f1a 100%)"
+      : "linear-gradient(135deg, #f0f4ff 0%, #fafafa 50%, #f0f4ff 100%)",
+    color: dark ? "#ffffff" : "#111111",
     minHeight: "100vh",
-    padding: window.innerWidth < 600 ? "10px" : "20px",
-    transition: "all 0.3s ease-in-out",
+    padding: window.innerWidth < 600 ? "10px" : "24px",
   };
 
-  const cardStyle = {
-    flex: 1,
-    minWidth: "140px",
-    padding: "15px",
-    borderRadius: "8px",
-    textAlign: "center",
-    backgroundColor: theme === "dark" ? "#1e1e1e" : "#ffffff",
-    boxShadow: theme === "dark" ? "0 2px 8px rgba(0,0,0,0.6)" : "0 2px 8px rgba(0,0,0,0.1)",
+  const labelStyle = {
+    fontSize: "11px",
+    fontWeight: "600",
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    opacity: 0.5,
+    marginBottom: "6px",
   };
+
+  const valueStyle = {
+    fontSize: "24px",
+    fontWeight: "700",
+    letterSpacing: "-0.02em",
+    lineHeight: 1.2,
+  };
+
+  const accentDot = (color) => ({
+    width: "8px",
+    height: "8px",
+    borderRadius: "50%",
+    backgroundColor: color,
+    display: "inline-block",
+    marginRight: "6px",
+    boxShadow: `0 0 8px ${color}`,
+  });
 
   return (
     <div style={pageStyle}>
-      <Header theme={theme} />
-      <Insights expenses={filteredExpenses} budget={budget} theme={theme} currency={currency} />
+      {/* Ambient background blobs */}
+      {dark && (
+        <>
+          <div style={{
+            position: "fixed", top: "-100px", left: "-100px", width: "400px", height: "400px",
+            borderRadius: "50%", background: "radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)",
+            pointerEvents: "none", zIndex: 0,
+          }} />
+          <div style={{
+            position: "fixed", bottom: "-100px", right: "-100px", width: "500px", height: "500px",
+            borderRadius: "50%", background: "radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%)",
+            pointerEvents: "none", zIndex: 0,
+          }} />
+        </>
+      )}
 
-      {/* Summary Cards */}
-      <div style={{ display: "flex", gap: "20px", marginBottom: "20px", flexWrap: "wrap", flexDirection: "row" }}>
-        <div style={cardStyle}>
-          <h4>Total Expenses</h4>
-          <p>{formatCurrency(totalExpenses, currency)}</p>
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <Header theme={theme} />
+        <Insights expenses={filteredExpenses} budget={budget} theme={theme} currency={currency} />
+
+        {/* Summary Cards */}
+        <div style={{ display: "flex", gap: "16px", marginBottom: "20px", flexWrap: "wrap" }}>
+          {[
+            { label: "Total Expenses", value: formatCurrency(totalExpenses, currency), color: "#6366f1", icon: "💸" },
+            { label: "This Month", value: formatCurrency(monthlyExpenses, currency), color: "#10b981", icon: "📅" },
+            { label: "Highest Expense", value: formatCurrency(highestExpense, currency), color: "#f59e0b", icon: "🔝" },
+          ].map((item, i) => (
+            <div key={i} style={{
+              ...card,
+              flex: "1 1 140px",
+              borderTop: `2px solid ${item.color}`,
+              position: "relative",
+              overflow: "hidden",
+            }}>
+              <div style={{
+                position: "absolute", top: "-20px", right: "-20px",
+                fontSize: "60px", opacity: 0.07, pointerEvents: "none",
+              }}>{item.icon}</div>
+              <div style={labelStyle}>{item.label}</div>
+              <div style={{ ...valueStyle, color: item.color }}>{item.value}</div>
+            </div>
+          ))}
         </div>
-        <div style={cardStyle}>
-          <h4>Monthly Expenses</h4>
-          <p>{formatCurrency(monthlyExpenses, currency)}</p>
+
+        {/* Stats Cards */}
+        <div style={{ display: "flex", gap: "16px", marginBottom: "20px", flexWrap: "wrap" }}>
+          <div style={{ ...card, flex: "1 1 140px", borderLeft: `3px solid ${monthChange >= 0 ? "#e74c3c" : "#2ecc71"}` }}>
+            <div style={labelStyle}>vs Last Month</div>
+            <div style={{ ...valueStyle, color: monthChange >= 0 ? "#e74c3c" : "#2ecc71" }}>
+              {monthChange >= 0 ? "📈" : "📉"} {Math.abs(monthChange).toFixed(1)}%
+            </div>
+            <div style={{ fontSize: "12px", opacity: 0.5, marginTop: "6px" }}>
+              Last: {formatCurrency(lastMonthExpenses, currency)}
+            </div>
+          </div>
+
+          <div style={{ ...card, flex: "1 1 140px", borderLeft: "3px solid #3b82f6" }}>
+            <div style={labelStyle}>Daily Average</div>
+            <div style={{ ...valueStyle, color: "#3b82f6" }}>{formatCurrency(avgDailySpending, currency)}</div>
+            <div style={{ fontSize: "12px", opacity: 0.5, marginTop: "6px" }}>per day this month</div>
+          </div>
+
+          <div style={{ ...card, flex: "1 1 140px", borderLeft: `3px solid ${categoryColors[topCategory?.[0]] || "#95a5a6"}` }}>
+            <div style={labelStyle}>Top Category</div>
+            <div style={{ ...valueStyle, color: categoryColors[topCategory?.[0]] || "#95a5a6" }}>
+              {topCategory ? topCategory[0] : "—"}
+            </div>
+            <div style={{ fontSize: "12px", opacity: 0.5, marginTop: "6px" }}>
+              {topCategory ? formatCurrency(topCategory[1], currency) : "No data"}
+            </div>
+          </div>
         </div>
-        <div style={cardStyle}>
-          <h4>Highest Expense</h4>
-          <p>{formatCurrency(highestExpense, currency)}</p>
-        </div>
-      </div>
 
-      {/* Stats Cards */}
-<div style={{ display: "flex", gap: "20px", marginBottom: "20px", flexWrap: "wrap" }}>
-  <div style={{ ...cardStyle, borderLeft: `4px solid ${monthChange >= 0 ? "#e74c3c" : "#2ecc71"}` }}>
-    <h4>vs Last Month</h4>
-    <p style={{ color: monthChange >= 0 ? "#e74c3c" : "#2ecc71", fontWeight: "bold", fontSize: "20px" }}>
-      {monthChange >= 0 ? "📈" : "📉"} {Math.abs(monthChange).toFixed(1)}%
-    </p>
-    <small style={{ opacity: 0.7 }}>
-      Last month: {formatCurrency(lastMonthExpenses, currency)}
-    </small>
-  </div>
-
-  <div style={{ ...cardStyle, borderLeft: "4px solid #3498db" }}>
-    <h4>Daily Average</h4>
-    <p style={{ fontWeight: "bold", fontSize: "20px" }}>
-      {formatCurrency(avgDailySpending, currency)}
-    </p>
-    <small style={{ opacity: 0.7 }}>per day this month</small>
-  </div>
-
-  <div style={{ ...cardStyle, borderLeft: `4px solid ${categoryColors[topCategory?.[0]] || "#95a5a6"}` }}>
-    <h4>Top Category</h4>
-    <p style={{ fontWeight: "bold", fontSize: "20px" }}>
-      {topCategory ? topCategory[0] : "—"}
-    </p>
-    <small style={{ opacity: 0.7 }}>
-      {topCategory ? formatCurrency(topCategory[1], currency) : "No data"}
-    </small>
-  </div>
-</div>
-
-      {/* Budget Section */}
-      <div style={{ ...cardStyle, marginBottom: "20px", textAlign: "left" }}>
-        <h4>Monthly Budget</h4>
-        <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
+        {/* Budget Section */}
+        <div style={{ ...card, marginBottom: "20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
+            <div style={{ ...labelStyle, marginBottom: 0 }}>Monthly Budget</div>
+            {budget && <div style={{ fontSize: "13px", fontWeight: "600", opacity: 0.7 }}>
+              {formatCurrency(monthlyExpenses, currency)} / {formatCurrency(budget, currency)}
+            </div>}
+          </div>
           <input
             type="number"
             value={budget || ""}
             readOnly
             style={{
-              padding: "8px",
-              borderRadius: "6px",
-              border: theme === "dark" ? "1px solid #555" : "1px solid #ccc",
-              backgroundColor: theme === "dark" ? "#333" : "#fff",
-              color: theme === "dark" ? "#fff" : "#000",
-              flex: 1,
+              ...inputBase(dark),
               width: "100%",
+              marginBottom: "12px",
+              boxSizing: "border-box",
             }}
           />
-        </div>
-        {budget && (
-          <>
-            <div
-              style={{
-                backgroundColor: "#e0e0e0",
-                borderRadius: "8px",
-                height: "18px",
+          {budget && (
+            <>
+              <div style={{
+                backgroundColor: dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)",
+                borderRadius: "100px",
+                height: "8px",
                 width: "100%",
-                marginBottom: "6px",
-              }}
-            >
-              <div
-                style={{
+                marginBottom: "8px",
+                overflow: "hidden",
+              }}>
+                <div style={{
                   height: "100%",
                   width: `${budgetProgress}%`,
-                  backgroundColor: progressColor,
-                  borderRadius: "8px",
-                  transition: "width 0.3s ease-in-out",
-                }}
-              ></div>
-            </div>
-            <p style={{ margin: "0", color: progressColor }}>{budgetStatus}</p>
-          </>
-        )}
-      </div>
+                  background: `linear-gradient(90deg, ${progressColor}99, ${progressColor})`,
+                  borderRadius: "100px",
+                  transition: "width 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+                  boxShadow: `0 0 10px ${progressColor}66`,
+                }} />
+              </div>
+              <p style={{ margin: 0, fontSize: "13px", color: progressColor, fontWeight: "500" }}>{budgetStatus}</p>
+            </>
+          )}
+        </div>
 
-      {/* Filters */}
-      <div style={{ display: "flex", gap: "10px", marginBottom: "20px", flexWrap: "wrap" }}>
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          style={{
-            flex: "1 1 150px",
-            padding: "5px",
-            borderRadius: "6px",
-            border: theme === "dark" ? "1px solid #555" : "1px solid #ccc",
-            backgroundColor: theme === "dark" ? "#333" : "#fff",
-            color: theme === "dark" ? "#fff" : "#000",
-          }}
-        >
-          <option value="">All Categories</option>
-          {Object.keys(categoryColors).map((cat) => (
-            <option key={cat} value={cat}>
-              {cat}
-            </option>
-          ))}
-        </select>
-        <input
-          type="date"
-          value={fromDate}
-          onChange={(e) => setFromDate(e.target.value)}
-          style={{
-            flex: "1 1 130px",
-            padding: "5px",
-            borderRadius: "6px",
-            border: theme === "dark" ? "1px solid #555" : "1px solid #ccc",
-            backgroundColor: theme === "dark" ? "#333" : "#fff",
-            color: theme === "dark" ? "#fff" : "#000",
-          }}
-        />
-        <input
-          type="date"
-          value={toDate}
-          onChange={(e) => setToDate(e.target.value)}
-          style={{
-            flex: "1 1 130px",
-            padding: "5px",
-            borderRadius: "6px",
-            border: theme === "dark" ? "1px solid #555" : "1px solid #ccc",
-            backgroundColor: theme === "dark" ? "#333" : "#fff",
-            color: theme === "dark" ? "#fff" : "#000",
-          }}
-        />
-        <button
-          onClick={applyFilters}
-          style={{
-            flex: "1 1 80px",
-            padding: "6px 10px",
-            borderRadius: "6px",
-            cursor: "pointer",
-            backgroundColor: "#3498db",
-            color: "#fff",
-            border: "none",
-          }}
-          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#2980b9")}
-          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#3498db")}
-        >
-          Apply
-        </button>
-      </div>
+        {/* Filters */}
+        <div style={{ ...card, marginBottom: "20px" }}>
+          <div style={{ ...labelStyle, marginBottom: "12px" }}>Filter Expenses</div>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              style={{ ...inputBase(dark), flex: "1 1 150px" }}
+            >
+              <option value="">All Categories</option>
+              {Object.keys(categoryColors).map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              style={{ ...inputBase(dark), flex: "1 1 130px" }}
+            />
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              style={{ ...inputBase(dark), flex: "1 1 130px" }}
+            />
+            <button
+              onClick={applyFilters}
+              style={{
+                flex: "1 1 80px",
+                padding: "10px 20px",
+                borderRadius: "10px",
+                cursor: "pointer",
+                background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                color: "#fff",
+                border: "none",
+                fontWeight: "600",
+                fontSize: "14px",
+                boxShadow: "0 4px 15px rgba(99,102,241,0.4)",
+                transition: "opacity 0.2s",
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.opacity = "0.85")}
+              onMouseOut={(e) => (e.currentTarget.style.opacity = "1")}
+            >
+              Apply
+            </button>
+          </div>
+        </div>
 
-      {/* Expense List */}
-      <ExpenseList expenses={filteredExpenses} theme={theme} readOnly={true} currency={currency} />
+        {/* Expense List */}
+        <ExpenseList expenses={filteredExpenses} theme={theme} readOnly={true} currency={currency} />
 
-      {/* Chart */}
-      {chartData.length > 0 ? (
-        <div
-          style={{
-            backgroundColor: theme === "dark" ? "#1e1e1e" : "#fff",
-            padding: "10px",
-            borderRadius: "10px",
-            marginTop: "20px",
-          }}
-        >
-          <ResponsiveContainer width="100%" height={window.innerWidth < 600 ? 250 : 400}>
-            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={theme === "dark" ? "#333" : "#ccc"} />
-              <XAxis dataKey="month" stroke={theme === "dark" ? "#fff" : "#000"} />
-              <YAxis stroke={theme === "dark" ? "#fff" : "#000"} />
-              <Tooltip />
-              {Object.keys(categoryColors).map((cat) => {
-                const oneTimeKey = `${cat}_oneTime`;
-                const recurringKey = `${cat}_recurring`;
-
-                return (
+        {/* Chart */}
+        {chartData.length > 0 ? (
+          <div style={{ ...card, marginTop: "20px" }}>
+            <div style={{ ...labelStyle, marginBottom: "16px" }}>Spending by Category</div>
+            <ResponsiveContainer width="100%" height={window.innerWidth < 600 ? 250 : 400}>
+              <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"} />
+                <XAxis dataKey="month" stroke={dark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)"} tick={{ fontSize: 12 }} />
+                <YAxis stroke={dark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)"} tick={{ fontSize: 12 }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: dark ? "rgba(20,20,40,0.95)" : "rgba(255,255,255,0.95)",
+                    border: dark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(0,0,0,0.1)",
+                    borderRadius: "12px",
+                    color: dark ? "#fff" : "#000",
+                    backdropFilter: "blur(20px)",
+                  }}
+                />
+                {Object.keys(categoryColors).map((cat) => (
                   <React.Fragment key={cat}>
-                    {chartData.some((data) => data[oneTimeKey] > 0) && (
-                      <Bar
-                        dataKey={oneTimeKey}
-                        stackId={cat}
-                        fill={categoryColors[cat]}
-                        name={`${cat} (One-time)`}
-                      />
+                    {chartData.some((d) => d[`${cat}_oneTime`] > 0) && (
+                      <Bar dataKey={`${cat}_oneTime`} stackId={cat} fill={categoryColors[cat]} name={`${cat} (One-time)`} radius={[4, 4, 0, 0]} />
                     )}
-                    {chartData.some((data) => data[recurringKey] > 0) && (
-                      <Bar
-                        dataKey={recurringKey}
-                        stackId={cat}
-                        fill={`${categoryColors[cat]}80`}
-                        name={`${cat} (Recurring)`}
-                      />
+                    {chartData.some((d) => d[`${cat}_recurring`] > 0) && (
+                      <Bar dataKey={`${cat}_recurring`} stackId={cat} fill={`${categoryColors[cat]}80`} name={`${cat} (Recurring)`} />
                     )}
                   </React.Fragment>
-                );
-              })}
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      ) : (
-        <p>No expenses to display.</p>
-      )}
+                ))}
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div style={{ ...card, marginTop: "20px", textAlign: "center", opacity: 0.5, padding: "40px" }}>
+            No expenses to display.
+          </div>
+        )}
+      </div>
     </div>
   );
 }
