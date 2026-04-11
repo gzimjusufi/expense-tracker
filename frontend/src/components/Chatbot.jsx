@@ -10,15 +10,17 @@ const authHeader = () => ({
 export default function Chatbot({ theme, currency }) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState(() => {
-  const saved = localStorage.getItem("chatbot_messages");
-  return saved ? JSON.parse(saved) : [
-    { role: "assistant", content: "Hi! I'm your expense assistant 💰 Ask me anything about your spending!" }
-  ];
-});
+    const saved = localStorage.getItem("chatbot_messages");
+    return saved ? JSON.parse(saved) : [
+      { role: "assistant", content: "Hi! I'm your expense assistant 💰 Ask me anything about your spending!" }
+    ];
+  });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [expenses, setExpenses] = useState([]);
   const messagesEndRef = useRef(null);
+
+  const dark = theme === "dark";
 
   useEffect(() => {
     const fetchExpenses = async () => {
@@ -36,23 +38,23 @@ export default function Chatbot({ theme, currency }) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  useEffect(() => {
+    localStorage.setItem("chatbot_messages", JSON.stringify(messages));
+  }, [messages]);
+
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
-
     const userMessage = { role: "user", content: input };
     setMessages(prev => [...prev, userMessage]);
     setInput("");
     setLoading(true);
-
     try {
       const allMessages = [...messages, userMessage].filter(m => m.role === "user" || m.role === "assistant");
-
       const response = await axios.post(
         `${API_URL}/api/chat`,
         { messages: allMessages, expenses, currency },
         authHeader()
       );
-
       setMessages(prev => [...prev, { role: "assistant", content: response.data.message }]);
     } catch (err) {
       console.error(err);
@@ -61,11 +63,12 @@ export default function Chatbot({ theme, currency }) {
       setLoading(false);
     }
   };
-  useEffect(() => {
-  localStorage.setItem("chatbot_messages", JSON.stringify(messages));
-}, [messages]);
 
-  const dark = theme === "dark";
+  const clearChat = () => {
+    const initial = [{ role: "assistant", content: "Hi! I'm your expense assistant 💰 Ask me anything about your spending!" }];
+    setMessages(initial);
+    localStorage.removeItem("chatbot_messages");
+  };
 
   return (
     <>
@@ -79,14 +82,17 @@ export default function Chatbot({ theme, currency }) {
           width: "55px",
           height: "55px",
           borderRadius: "50%",
-          backgroundColor: "#6366f1",
+          background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
           color: "#fff",
           border: "none",
-          fontSize: "24px",
+          fontSize: "22px",
           cursor: "pointer",
-          boxShadow: "0 4px 15px rgba(99,102,241,0.5)",
+          boxShadow: "0 4px 20px rgba(99,102,241,0.5)",
           zIndex: 9999,
+          transition: "transform 0.2s, opacity 0.2s",
         }}
+        onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.1)")}
+        onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
       >
         {isOpen ? "✕" : "💬"}
       </button>
@@ -97,35 +103,55 @@ export default function Chatbot({ theme, currency }) {
           position: "fixed",
           bottom: "85px",
           right: "20px",
-          width: window.innerWidth < 600 ? "95vw" : "350px",
-          height: "500px",
-          backgroundColor: dark ? "#1e1e1e" : "#fff",
-          borderRadius: "16px",
-          boxShadow: "0 8px 30px rgba(0,0,0,0.3)",
+          width: window.innerWidth < 600 ? "95vw" : "360px",
+          height: "520px",
+          background: dark ? "rgba(15,15,26,0.95)" : "rgba(255,255,255,0.95)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          borderRadius: "20px",
+          border: dark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(0,0,0,0.07)",
+          boxShadow: dark ? "0 24px 60px rgba(0,0,0,0.6)" : "0 24px 60px rgba(0,0,0,0.15)",
           display: "flex",
           flexDirection: "column",
           zIndex: 9998,
           overflow: "hidden",
         }}>
+
           {/* Header */}
           <div style={{
-            backgroundColor: "#6366f1",
-            padding: "15px 20px",
+            background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+            padding: "16px 20px",
             color: "#fff",
-            fontWeight: "bold",
-            fontSize: "16px",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
           }}>
-            💰 Expense Assistant
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <div style={{
+                width: "32px", height: "32px", borderRadius: "50%",
+                background: "rgba(255,255,255,0.2)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "16px",
+              }}>
+                💰
+              </div>
+              <div>
+                <div style={{ fontWeight: "700", fontSize: "14px" }}>Expense Assistant</div>
+                <div style={{ fontSize: "11px", opacity: 0.7 }}>AI-powered insights</div>
+              </div>
+            </div>
             <button
-              onClick={() => {
-  const initial = [{ role: "assistant", content: "Hi! I'm your expense assistant 💰 Ask me anything about your spending!" }];
-  setMessages(initial);
-  localStorage.removeItem("chatbot_messages");
-}}
-              style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: "12px", opacity: 0.8 }}
+              onClick={clearChat}
+              style={{
+                background: "rgba(255,255,255,0.15)",
+                border: "1px solid rgba(255,255,255,0.2)",
+                color: "#fff", cursor: "pointer",
+                fontSize: "11px", fontWeight: "600",
+                padding: "4px 10px", borderRadius: "6px",
+                transition: "opacity 0.2s",
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.opacity = "0.7")}
+              onMouseOut={(e) => (e.currentTarget.style.opacity = "1")}
             >
               Clear
             </button>
@@ -135,7 +161,7 @@ export default function Chatbot({ theme, currency }) {
           <div style={{
             flex: 1,
             overflowY: "auto",
-            padding: "15px",
+            padding: "16px",
             display: "flex",
             flexDirection: "column",
             gap: "10px",
@@ -149,11 +175,17 @@ export default function Chatbot({ theme, currency }) {
                   maxWidth: "80%",
                   padding: "10px 14px",
                   borderRadius: msg.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-                  backgroundColor: msg.role === "user" ? "#6366f1" : dark ? "#2d2d2d" : "#f0f0f0",
+                  background: msg.role === "user"
+                    ? "linear-gradient(135deg, #6366f1, #8b5cf6)"
+                    : dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)",
+                  border: msg.role === "user"
+                    ? "none"
+                    : dark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(0,0,0,0.07)",
                   color: msg.role === "user" ? "#fff" : dark ? "#fff" : "#000",
                   fontSize: "14px",
-                  lineHeight: "1.5",
+                  lineHeight: "1.6",
                   whiteSpace: "pre-wrap",
+                  boxShadow: msg.role === "user" ? "0 4px 12px rgba(99,102,241,0.3)" : "none",
                 }}>
                   {msg.content}
                 </div>
@@ -162,13 +194,14 @@ export default function Chatbot({ theme, currency }) {
             {loading && (
               <div style={{ display: "flex", justifyContent: "flex-start" }}>
                 <div style={{
-                  padding: "10px 14px",
+                  padding: "10px 16px",
                   borderRadius: "18px 18px 18px 4px",
-                  backgroundColor: dark ? "#2d2d2d" : "#f0f0f0",
-                  color: dark ? "#fff" : "#000",
+                  background: dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)",
+                  border: dark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(0,0,0,0.07)",
+                  color: dark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.5)",
                   fontSize: "14px",
                 }}>
-                  Thinking... 🤔
+                  <span style={{ animation: "pulse 1.5s infinite" }}>Thinking... 🤔</span>
                 </div>
               </div>
             )}
@@ -178,9 +211,10 @@ export default function Chatbot({ theme, currency }) {
           {/* Input */}
           <div style={{
             padding: "12px",
-            borderTop: `1px solid ${dark ? "#333" : "#eee"}`,
+            borderTop: dark ? "1px solid rgba(255,255,255,0.06)" : "1px solid rgba(0,0,0,0.06)",
             display: "flex",
             gap: "8px",
+            background: dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)",
           }}>
             <input
               type="text"
@@ -190,10 +224,10 @@ export default function Chatbot({ theme, currency }) {
               placeholder="Ask about your expenses..."
               style={{
                 flex: 1,
-                padding: "10px",
+                padding: "10px 14px",
                 borderRadius: "10px",
-                border: `1px solid ${dark ? "#444" : "#ddd"}`,
-                backgroundColor: dark ? "#2a2a2a" : "#fff",
+                border: dark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(0,0,0,0.1)",
+                background: dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
                 color: dark ? "#fff" : "#000",
                 fontSize: "14px",
                 outline: "none",
@@ -204,13 +238,18 @@ export default function Chatbot({ theme, currency }) {
               disabled={loading}
               style={{
                 padding: "10px 16px",
-                backgroundColor: loading ? "#999" : "#6366f1",
+                background: loading ? "rgba(99,102,241,0.4)" : "linear-gradient(135deg, #6366f1, #8b5cf6)",
                 color: "#fff",
                 border: "none",
                 borderRadius: "10px",
                 cursor: loading ? "not-allowed" : "pointer",
-                fontWeight: "bold",
+                fontWeight: "600",
+                fontSize: "14px",
+                boxShadow: loading ? "none" : "0 4px 12px rgba(99,102,241,0.4)",
+                transition: "opacity 0.2s",
               }}
+              onMouseOver={(e) => !loading && (e.currentTarget.style.opacity = "0.85")}
+              onMouseOut={(e) => (e.currentTarget.style.opacity = "1")}
             >
               Send
             </button>

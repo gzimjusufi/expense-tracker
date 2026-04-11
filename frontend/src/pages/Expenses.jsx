@@ -239,12 +239,6 @@ setPaymentMethod("card");
     ? Math.min((totalSpent / monthlyBudget) * 100, 100)
     : 0;
 
-  const getProgressBarVariant = () => {
-    if (budgetUsedPercentage >= 90) return "bg-danger";
-    if (budgetUsedPercentage >= 70) return "bg-warning";
-    return "bg-success";
-  };
-
   return (
 <div
   style={{
@@ -258,75 +252,78 @@ setPaymentMethod("card");
 >
       <h1 className="mb-4 text-center">Expenses Tab</h1>
 
+{/* Ambient blobs */}
+      {theme === "dark" && (
+        <>
+          <div style={{
+            position: "fixed", top: "-100px", left: "-100px", width: "400px", height: "400px",
+            borderRadius: "50%", background: "radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)",
+            pointerEvents: "none", zIndex: 0,
+          }} />
+          <div style={{
+            position: "fixed", bottom: "-100px", right: "-100px", width: "500px", height: "500px",
+            borderRadius: "50%", background: "radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%)",
+            pointerEvents: "none", zIndex: 0,
+          }} />
+        </>
+      )}
+
       {/* Budget */}
-      <div style={labelStyle}>Monthly Budget</div>
-      <div style={{ ...glassCard(theme === "dark"), marginBottom: "20px" }}>
-        <div className="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
-          <h5 className="m-0">Monthly Budget</h5>
-          <div className="d-flex gap-2 align-items-center">
+      <div style={{ ...glassCard(theme === "dark"), marginBottom: "20px", borderTop: "2px solid #6366f1" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px", marginBottom: "14px" }}>
+          <div style={labelStyle}>Monthly Budget</div>
+          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
             <input
               type="number"
-              className={`form-control form-control-sm ${
-                theme === "dark" ? "bg-dark text-light border-0" : ""
-              }`}
-              style={{ width: "120px" }}
               value={budgetInput}
               onChange={(e) => setBudgetInput(Number(e.target.value))}
+              style={{ ...inputStyle(theme === "dark"), width: "100px" }}
             />
-            <span className="fw-bold">{currency || "USD"}</span>
-            <button className="btn btn-primary btn-sm" onClick={saveBudget}>
+            <span style={{ opacity: 0.5, fontSize: "13px" }}>{currency || "USD"}</span>
+            <button onClick={saveBudget} style={{
+              padding: "8px 16px",
+              background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+              color: "#fff", border: "none", borderRadius: "10px",
+              cursor: "pointer", fontWeight: "600", fontSize: "13px",
+              boxShadow: "0 4px 12px rgba(99,102,241,0.4)",
+            }}>
               Update
             </button>
           </div>
         </div>
-        <div className="progress" style={{ height: "20px" }}>
-          <div
-            className={`progress-bar ${getProgressBarVariant()}`}
-            role="progressbar"
-            style={{ width: `${budgetUsedPercentage}%` }}
-          >
-            {budgetUsedPercentage.toFixed(1)}%
-          </div>
+        <div style={{
+          background: theme === "dark" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)",
+          borderRadius: "100px", height: "8px", width: "100%",
+          overflow: "hidden", marginBottom: "8px",
+        }}>
+          <div style={{
+            height: "100%", width: `${budgetUsedPercentage}%`,
+            background: budgetUsedPercentage >= 90
+              ? "linear-gradient(90deg, #ef444499, #ef4444)"
+              : budgetUsedPercentage >= 70
+              ? "linear-gradient(90deg, #f59e0b99, #f59e0b)"
+              : "linear-gradient(90deg, #10b98199, #10b981)",
+            borderRadius: "100px",
+            transition: "width 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+            boxShadow: budgetUsedPercentage >= 90
+              ? "0 0 10px #ef444466"
+              : budgetUsedPercentage >= 70
+              ? "0 0 10px #f59e0b66"
+              : "0 0 10px #10b98166",
+          }} />
         </div>
-        <p className="mt-2 mb-0">
-          Spent: <strong>{formatCurrency(totalSpent, currency)}</strong> /{" "}
-          <strong>{formatCurrency(monthlyBudget, currency)}</strong>
-        </p>
-        {budgetUsedPercentage >= 90 && (
-          <p className="text-danger fw-bold mt-2">
-            ⚠️ Warning: You are exceeding your monthly budget!
-          </p>
-        )}
-        {budgetUsedPercentage >= 70 && budgetUsedPercentage < 90 && (
-          <p className="text-warning fw-bold mt-2">
-            ⚠️ Caution: You are close to exceeding your monthly budget.
-          </p>
-        )}
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px" }}>
+          <span style={{
+            color: budgetUsedPercentage >= 90 ? "#ef4444" : budgetUsedPercentage >= 70 ? "#f59e0b" : "#10b981",
+            fontWeight: "600",
+          }}>
+            {budgetUsedPercentage >= 90 ? "⚠️ Over budget!" : budgetUsedPercentage >= 70 ? "⚠️ Close to limit" : "✅ On track"}
+          </span>
+          <span style={{ opacity: 0.6 }}>
+            {formatCurrency(totalSpent, currency)} / {formatCurrency(monthlyBudget, currency)}
+          </span>
+        </div>
       </div>
-      {theme === "dark" && (
-  <>
-    <div style={{
-      position: "fixed",
-      top: "-100px",
-      left: "-100px",
-      width: "400px",
-      height: "400px",
-      borderRadius: "50%",
-      background: "radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)",
-      pointerEvents: "none",
-    }} />
-    <div style={{
-      position: "fixed",
-      bottom: "-100px",
-      right: "-100px",
-      width: "500px",
-      height: "500px",
-      borderRadius: "50%",
-      background: "radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%)",
-      pointerEvents: "none",
-    }} />
-  </>
-)}
 
       {/* Add Expense Form */}
       <div style={labelStyle}>Add Expense</div>
@@ -464,6 +461,7 @@ setPaymentMethod("card");
       .map((expense) => (
         <motion.div
   key={expense._id}
+  onClick={() => openEditModal(expense)}
   style={{
     ...glassCard(theme === "dark"),
     display: "flex",
@@ -547,23 +545,9 @@ setPaymentMethod("card");
 
             {/* ACTIONS */}
             <div style={{ marginTop: "6px" }}>
-              <button
-                onClick={() => openEditModal(expense)}
-                style={{
-                  marginRight: "5px",
-                  padding: "5px 10px",
-                  border: "none",
-                  borderRadius: "6px",
-                  background: "#f59e0b",
-                  color: "#fff",
-                  cursor: "pointer",
-                }}
-              >
-                Edit
-              </button>
 
               <button
-                onClick={() => deleteExpense(expense._id)}
+                onClick={(e) => { e.stopPropagation(); deleteExpense(expense._id); }}
                 style={{
                   padding: "5px 10px",
                   border: "none",

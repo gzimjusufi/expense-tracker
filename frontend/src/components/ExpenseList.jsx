@@ -2,7 +2,6 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatCurrency } from "../services/currency";
 
-// Colors for categories
 const categoryColors = {
   Food: "#2ecc71",
   Groceries: "#3498db",
@@ -14,43 +13,7 @@ const categoryColors = {
 };
 
 export default function ExpenseList({ expenses, onDelete, theme, readOnly = false, currency = "USD" }) {
-  const tableStyle = {
-    width: "100%",
-    borderCollapse: "collapse",
-    borderRadius: "8px",
-    overflow: "hidden",
-    boxShadow:
-      theme === "dark"
-        ? "0 2px 8px rgba(0, 0, 0, 0.6)"
-        : "0 2px 8px rgba(0, 0, 0, 0.1)",
-    marginTop: "20px",
-  };
-
-  const thStyle = {
-    padding: "14px",
-    textAlign: "left",
-    backgroundColor: theme === "dark" ? "#2d3748" : "#e6e6e6",
-    color: theme === "dark" ? "#fff" : "#000",
-    fontWeight: "600",
-    borderBottom: theme === "dark" ? "2px solid #4a5568" : "2px solid #ccc",
-  };
-
-  const tdStyle = {
-    padding: "12px",
-    borderBottom: theme === "dark" ? "1px solid #4a5568" : "1px solid #ccc",
-    color: theme === "dark" ? "#e2e8f0" : "#000",
-  };
-
-  const buttonStyle = {
-    padding: "6px 10px",
-    backgroundColor: "#e74c3c",
-    color: "#fff",
-    border: "none",
-    borderRadius: "5px",
-    cursor: "pointer",
-    fontSize: "13px",
-    transition: "all 0.2s ease-in-out",
-  };
+  const dark = theme === "dark";
 
   const getCategoryColor = (category) => {
     const normalized = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
@@ -60,77 +23,137 @@ export default function ExpenseList({ expenses, onDelete, theme, readOnly = fals
   const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 
   return (
-    <div style={{ overflowX: "auto", width: "100%" }}>
-      <h3 style={{ marginBottom: "10px" }}>Expense List</h3>
+    <div style={{ width: "100%" }}>
+      <div style={{
+        fontSize: "11px", fontWeight: "600", letterSpacing: "0.08em",
+        textTransform: "uppercase", opacity: 0.5, marginBottom: "12px",
+      }}>
+        Expense List
+      </div>
 
-
-      <table style={{ ...tableStyle, minWidth: "600px" }}>
-        <thead>
-          <tr>
-            <th style={thStyle}>Date</th>
-            <th style={thStyle}>Category</th>
-            <th style={thStyle}>Item</th>
-            <th style={thStyle}>Amount</th>
-            <th style={thStyle}>Recurring</th> {/* New column */}
-            {!readOnly && <th style={thStyle}>Actions</th>}
-          </tr>
-        </thead>
-        <tbody>
-          <AnimatePresence>
-            {expenses.map((expense) => (
-              <motion.tr
-                key={expense._id}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-              >
-                <td style={tdStyle}>{new Date(expense.date).toLocaleDateString()}</td>
-                <td style={tdStyle}>
-                  <span
-                    style={{
+      <div style={{ overflowX: "auto", width: "100%" }}>
+        <table style={{
+          width: "100%",
+          minWidth: "600px",
+          borderCollapse: "collapse",
+          borderRadius: "16px",
+          overflow: "hidden",
+        }}>
+          <thead>
+            <tr style={{
+              background: dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)",
+            }}>
+              {["Date", "Category", "Item", "Amount", "Recurring", ...(!readOnly ? ["Actions"] : [])].map((h, i) => (
+                <th key={i} style={{
+                  padding: "12px 14px",
+                  textAlign: "left",
+                  fontSize: "11px",
+                  fontWeight: "600",
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  opacity: 0.5,
+                  borderBottom: dark ? "1px solid rgba(255,255,255,0.06)" : "1px solid rgba(0,0,0,0.06)",
+                  whiteSpace: "nowrap",
+                }}>
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <AnimatePresence>
+              {expenses.length === 0 ? (
+                <tr>
+                  <td colSpan={readOnly ? 5 : 6} style={{
+                    padding: "40px", textAlign: "center",
+                    opacity: 0.4, fontSize: "14px",
+                  }}>
+                    No expenses found.
+                  </td>
+                </tr>
+              ) : expenses.map((expense) => (
+                <motion.tr
+                  key={expense._id}
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                  style={{
+                    borderBottom: dark ? "1px solid rgba(255,255,255,0.04)" : "1px solid rgba(0,0,0,0.04)",
+                    transition: "background 0.2s",
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.background = dark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)"}
+                  onMouseOut={(e) => e.currentTarget.style.background = "transparent"}
+                >
+                  <td style={{ padding: "12px 14px", fontSize: "13px", opacity: 0.7, whiteSpace: "nowrap" }}>
+                    {new Date(expense.date).toLocaleDateString()}
+                  </td>
+                  <td style={{ padding: "12px 14px" }}>
+                    <span style={{
                       display: "inline-block",
                       backgroundColor: getCategoryColor(expense.category),
                       color: "#fff",
                       padding: "4px 10px",
-                      borderRadius: "12px",
-                      fontSize: "13px",
+                      borderRadius: "100px",
+                      fontSize: "12px",
                       fontWeight: "600",
-                      minWidth: "60px",
-                      textAlign: "center",
-                    }}
-                  >
-                    {capitalize(expense.category)}
-                  </span>
-                </td>
-                <td style={tdStyle}>{expense.description || "-"}</td>
-                <td style={tdStyle}>{formatCurrency(expense.amount, currency)}</td>
-                <td style={tdStyle}>
-                  {expense.recurring ? (
-                    <span
-                      style={{
-                        color: "#27ae60",
-                        fontWeight: "600",
-                      }}
-                    >
-                      ✅ {capitalize(expense.recurrence)}
+                      whiteSpace: "nowrap",
+                    }}>
+                      {capitalize(expense.category)}
                     </span>
-                  ) : (
-                    "—"
-                  )}
-                </td>
-                {!readOnly && (
-                  <td style={tdStyle}>
-                    <button style={buttonStyle} onClick={() => onDelete(expense._id)}>
-                      Delete
-                    </button>
                   </td>
-                )}
-              </motion.tr>
-            ))}
-          </AnimatePresence>
-        </tbody>
-      </table>
+                  <td style={{ padding: "12px 14px", fontSize: "13px", opacity: 0.8 }}>
+                    {expense.description || "—"}
+                  </td>
+                  <td style={{ padding: "12px 14px", fontSize: "14px", fontWeight: "700", color: "#6366f1", whiteSpace: "nowrap" }}>
+                    {formatCurrency(expense.amount, currency)}
+                  </td>
+                  <td style={{ padding: "12px 14px", fontSize: "13px" }}>
+                    {expense.recurring ? (
+                      <span style={{
+                        color: "#10b981", fontWeight: "600",
+                        background: "rgba(16,185,129,0.1)",
+                        padding: "4px 10px", borderRadius: "100px",
+                        fontSize: "12px", whiteSpace: "nowrap",
+                      }}>
+                        ✅ {capitalize(expense.recurrence)}
+                      </span>
+                    ) : (
+                      <span style={{ opacity: 0.3 }}>—</span>
+                    )}
+                  </td>
+                  {!readOnly && (
+                    <td style={{ padding: "12px 14px" }}>
+                      <button
+                        onClick={() => onDelete(expense._id)}
+                        style={{
+                          padding: "6px 12px",
+                          background: "rgba(239,68,68,0.1)",
+                          color: "#ef4444",
+                          border: "1px solid rgba(239,68,68,0.3)",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                          fontSize: "12px",
+                          fontWeight: "600",
+                          transition: "all 0.2s",
+                        }}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.background = "rgba(239,68,68,0.2)";
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.background = "rgba(239,68,68,0.1)";
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  )}
+                </motion.tr>
+              ))}
+            </AnimatePresence>
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
