@@ -8,7 +8,7 @@ A full-stack web app for tracking personal expenses, setting spending goals, and
 
 ## Tech Stack
 
-- **Frontend:** [React], deployed on Vercel
+- **Frontend:** [React, Tailwind Css], deployed on Vercel
 - **Backend:** [Node.js + Express], deployed on Render
 - **Database:** MongoDB Atlas
 - **Auth:** [JWT / sessions]
@@ -65,7 +65,8 @@ Then open http://localhost:3000 (adjust the port if yours differs).
 ```
 expense-tracker/
 ├── backend/     # API, models, auth
-└── frontend/    # UI, charts, PWA setup
+├── frontend/    # UI, charts, PWA setup
+└── screenshots/ # Screenshots of the live demo
 ```
 
 ## Notes
